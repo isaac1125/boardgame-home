@@ -2,8 +2,25 @@ import type { CatalogData, CatalogSettings, Game, ParamRow } from '../types'
 import { parseCsv, rowsToObjects } from './csv'
 import { parseBool, parseOptionalInt } from './format'
 
-const SAMPLE_GAMES_URL = '/seed-games.csv'
-const SAMPLE_PARAMS_URL = '/seed-params.csv'
+/** Vite base ends with `/` (e.g. `/boardgame-home/` on GitHub Pages). */
+const BASE = import.meta.env.BASE_URL || '/'
+
+function withBase(path: string): string {
+  const clean = path.replace(/^\//, '')
+  return `${BASE}${clean}`
+}
+
+const SAMPLE_GAMES_URL = withBase('seed-games.csv')
+const SAMPLE_PARAMS_URL = withBase('seed-params.csv')
+
+/** App-relative asset paths (e.g. `/covers/x.jpg`) must respect Pages base. */
+export function resolveAssetUrl(url: string): string {
+  const t = url.trim()
+  if (!t) return ''
+  if (/^https?:\/\//i.test(t) || t.startsWith('data:')) return t
+  if (t.startsWith('/')) return withBase(t.slice(1))
+  return withBase(t)
+}
 
 function mapGame(row: Record<string, string>): Game | null {
   const name = (row.name ?? '').trim()
@@ -90,7 +107,9 @@ async function resolveSheetUrls(): Promise<{ gamesUrl: string; paramsUrl: string
   }
 
   try {
-    const res = await fetch(`/config.json?ts=${Date.now()}`, { cache: 'no-store' })
+    const res = await fetch(`${withBase('config.json')}?ts=${Date.now()}`, {
+      cache: 'no-store',
+    })
     if (!res.ok) return null
     const cfg = (await res.json()) as RuntimeConfig
     const gamesUrl = cfg.gamesCsvUrl?.trim()

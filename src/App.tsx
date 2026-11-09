@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CatalogData, Game } from './types'
 import { formatPlayTime, formatPlayers } from './lib/format'
-import { loadCatalog } from './lib/loadCatalog'
+import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
 import { youtubeEmbedUrl } from './lib/youtube'
 import './App.css'
 
@@ -71,12 +71,13 @@ function CoverThumb({
   size?: 'card' | 'detail'
 }) {
   const [broken, setBroken] = useState(false)
-  const showImg = Boolean(url) && !broken
+  const src = resolveAssetUrl(url)
+  const showImg = Boolean(src) && !broken
 
   return (
     <div className={`cover cover--${size}`} aria-hidden={showImg ? undefined : true}>
       {showImg ? (
-        <img src={url} alt="" loading="lazy" onError={() => setBroken(true)} />
+        <img src={src} alt="" loading="lazy" onError={() => setBroken(true)} />
       ) : (
         <div className="cover__placeholder">
           <span>{name.slice(0, 1) || '?'}</span>
