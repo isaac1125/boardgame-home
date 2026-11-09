@@ -1,4 +1,4 @@
-# BG blanket
+# 桌遊抵家 / Boardgame Home
 
 Read-only board-game catalog. Data comes from a Google Sheet (`games` + `params`) or local sample CSVs.
 
@@ -11,8 +11,17 @@ npm run dev
 
 ## Connect a Sheet
 
-1. Follow `/cursor/stores/self/docs/sheet-setup.md` (or the Project `docs/sheet-setup.md`).
-2. Set `VITE_GAMES_CSV_URL` and `VITE_PARAMS_CSV_URL` to the public CSV export / gviz URLs.
-3. Rebuild / republish.
+See Project docs: `connected-sheet.md` / `sheet-setup.md`.
 
-Without those env vars the UI loads `/seed-games.csv` and `/seed-params.csv` and labels itself as sample data.
+App reads `public/config.json`:
+
+```json
+{
+  "gamesCsvUrl": "…gviz…&sheet=games",
+  "paramsCsvUrl": "…gviz…&sheet=params"
+}
+```
+
+## Deploy
+
+GitHub Pages via Actions on `main`. Live site: `https://isaac1125.github.io/boardgame-home/`

@@ -267,8 +267,8 @@ export default function App() {
     return (
       <div className="page">
         <header className="topbar">
-          <div className="brand">BG blanket</div>
-          <div className="topbar-right">桌遊清單</div>
+          <div className="brand">桌遊抵家</div>
+          <div className="topbar-right">Boardgame Home</div>
         </header>
         <div className="panel error-panel">
           <h1>載入失敗</h1>
@@ -282,8 +282,8 @@ export default function App() {
     return (
       <div className="page">
         <header className="topbar">
-          <div className="brand">BG blanket</div>
-          <div className="topbar-right">桌遊清單</div>
+          <div className="brand">桌遊抵家</div>
+          <div className="topbar-right">Boardgame Home</div>
         </header>
         <div className="panel">
           <p className="loading">載入中…</p>
@@ -295,8 +295,8 @@ export default function App() {
   return (
     <div className="page">
       <header className="topbar">
-        <div className="brand">BG blanket</div>
-        <div className="topbar-right">桌遊清單</div>
+        <div className="brand">桌遊抵家</div>
+        <div className="topbar-right">Boardgame Home</div>
       </header>
 
       {data.source === 'sample' ? (

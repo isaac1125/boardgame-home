@@ -101,6 +101,11 @@
   box-shadow: 3px 3px 0 var(--ink);
   padding: 0.5rem 0.65rem;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+  touch-action: manipulation;
+  min-height: 2.6rem;
 }
 
 .filter-summary.has-active {
@@ -177,9 +182,12 @@
   border: 2px solid var(--ink);
   border-radius: 999px;
   background: #fff;
-  padding: 0.28rem 0.65rem;
+  padding: 0.4rem 0.75rem;
+  min-height: 2.2rem;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--ink);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
 }
 
 .chip.is-on.chip--yellow {
@@ -246,7 +254,20 @@
   padding: 0.55rem;
   cursor: pointer;
   font: inherit;
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+  touch-action: manipulation;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+/* Decorative children must not steal taps on mobile browsers */
+.game-card img,
+.game-card .cover,
+.game-card .cover__placeholder,
+.game-card .chev,
+.filter-summary__chev {
+  pointer-events: none;
 }
 
 .game-card:hover {
@@ -400,6 +421,7 @@
   align-items: flex-end;
   z-index: 40;
   padding: 0;
+  touch-action: manipulation;
 }
 
 .detail-panel {
@@ -441,8 +463,8 @@
 }
 
 .icon-btn {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: 3px solid var(--ink);
   border-radius: 10px;
   background: var(--yellow);
@@ -452,6 +474,10 @@
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 2;
 }
 
 .detail-grid {
