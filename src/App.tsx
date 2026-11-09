@@ -44,6 +44,23 @@ function matchesFilters(game: Game, filters: Filters): boolean {
   return true
 }
 
+function filterSummary(filters: Filters): string {
+  const bits: string[] = []
+  if (filters.players.trim()) bits.push(`${filters.players} 人`)
+  if (filters.categories.size) bits.push([...filters.categories].join('、'))
+  if (filters.difficulties.size) bits.push([...filters.difficulties].join('、'))
+  if (filters.availableOnly) bits.push('只看可拿')
+  return bits.length ? bits.join(' · ') : '類別／難度／可拿'
+}
+
+function activeFilterCount(filters: Filters): number {
+  return (
+    filters.categories.size +
+    filters.difficulties.size +
+    (filters.availableOnly ? 1 : 0)
+  )
+}
+
 function CoverThumb({
   url,
   name,
@@ -79,6 +96,18 @@ function GameCard({
   onOpen: () => void
 }) {
   const time = formatPlayTime(game)
+  const metaBits = [
+    formatPlayers(game),
+    time,
+    game.difficulty || null,
+    showLocation && game.location ? game.location : null,
+  ].filter(Boolean)
+
+  const statusBits = [
+    game.unopened ? '未開封' : null,
+    game.lentTo ? '已借出' : null,
+  ].filter(Boolean)
+
   return (
     <button type="button" className="game-card" onClick={onOpen}>
       <div className="game-card__body">
@@ -88,21 +117,13 @@ function GameCard({
             <h3>{game.name}</h3>
             <span className="chev">→</span>
           </div>
-          <div className="meta-row">
-            <span className="pill">{formatPlayers(game)}</span>
-            {time ? <span className="pill pill--time">{time}</span> : null}
+          <div className="meta-line">
+            {game.category ? <span className="tag-cat">{game.category}</span> : null}
+            <span className="meta-plain">{metaBits.join(' · ')}</span>
           </div>
-          <div className="meta-row">
-            {game.category ? <span className="tag tag--yellow">{game.category}</span> : null}
-            {game.difficulty ? <span className="tag tag--teal">{game.difficulty}</span> : null}
-          </div>
-          <div className="badge-row">
-            {game.unopened ? <span className="badge badge--coral">未開封</span> : null}
-            {game.lentTo ? <span className="badge badge--muted">已借出</span> : null}
-            {showLocation && game.location ? (
-              <span className="badge badge--outline">{game.location}</span>
-            ) : null}
-          </div>
+          {statusBits.length > 0 ? (
+            <div className="status-line">{statusBits.join(' · ')}</div>
+          ) : null}
         </div>
       </div>
     </button>
@@ -133,7 +154,10 @@ function DetailPanel({
         <div className="detail-panel__header">
           <div className="detail-panel__title-row">
             <CoverThumb url={game.thumbnailUrl} name={game.name} size="detail" />
-            <h2>{game.name}</h2>
+            <div className="detail-panel__title-text">
+              <h2>{game.name}</h2>
+              {game.category ? <span className="tag-cat">{game.category}</span> : null}
+            </div>
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="關閉">
             ×
@@ -207,6 +231,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters)
   const [selected, setSelected] = useState<Game | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -235,6 +260,8 @@ export default function App() {
     if (!data) return []
     return data.games.filter((g) => matchesFilters(g, filters))
   }, [data, filters])
+
+  const chipCount = activeFilterCount(filters)
 
   if (error) {
     return (
@@ -279,21 +306,20 @@ export default function App() {
       ) : null}
 
       <section className="panel filter-panel">
-        <h1 className="section-title">搜尋遊戲</h1>
         <div className="filter-grid">
-          <label className="field">
-            <span>搜尋人數</span>
+          <label className="field field--players">
+            <span>人數</span>
             <input
               type="number"
               min={1}
               inputMode="numeric"
-              placeholder="例如 4"
+              placeholder="4"
               value={filters.players}
               onChange={(e) => setFilters((f) => ({ ...f, players: e.target.value }))}
             />
           </label>
           <label className="field field--grow">
-            <span>搜尋名稱</span>
+            <span>名稱</span>
             <input
               type="search"
               placeholder="關鍵字…"
@@ -303,58 +329,76 @@ export default function App() {
           </label>
         </div>
 
-        <div className="chip-block">
-          <div className="chip-label">類別</div>
-          <div className="chips">
-            {data.categories.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`chip ${filters.categories.has(c) ? 'is-on chip--yellow' : ''}`}
-                onClick={() =>
-                  setFilters((f) => ({ ...f, categories: toggleSet(f.categories, c) }))
-                }
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
+        <button
+          type="button"
+          className={`filter-summary ${filtersOpen ? 'is-open' : ''} ${chipCount ? 'has-active' : ''}`}
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((v) => !v)}
+        >
+          <span className="filter-summary__label">
+            篩選
+            {chipCount > 0 ? <em>{chipCount}</em> : null}
+          </span>
+          <span className="filter-summary__text">{filterSummary(filters)}</span>
+          <span className="filter-summary__chev" aria-hidden>
+            {filtersOpen ? '▴' : '▾'}
+          </span>
+        </button>
 
-        <div className="chip-block">
-          <div className="chip-label">難易度</div>
-          <div className="chips">
-            {data.difficulties.map((d) => (
-              <button
-                key={d}
-                type="button"
-                className={`chip ${filters.difficulties.has(d) ? 'is-on chip--teal' : ''}`}
-                onClick={() =>
-                  setFilters((f) => ({ ...f, difficulties: toggleSet(f.difficulties, d) }))
-                }
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </div>
+        {filtersOpen ? (
+          <div className="filter-extra">
+            <div className="chip-block">
+              <div className="chip-label">類別</div>
+              <div className="chips chips--scroll">
+                {data.categories.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`chip ${filters.categories.has(c) ? 'is-on chip--yellow' : ''}`}
+                    onClick={() =>
+                      setFilters((f) => ({ ...f, categories: toggleSet(f.categories, c) }))
+                    }
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <label className="toggle">
-          <input
-            type="checkbox"
-            checked={filters.availableOnly}
-            onChange={(e) => setFilters((f) => ({ ...f, availableOnly: e.target.checked }))}
-          />
-          <span>只看可拿（不含已借出）</span>
-        </label>
+            <div className="chip-block">
+              <div className="chip-label">難易度</div>
+              <div className="chips chips--scroll">
+                {data.difficulties.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`chip ${filters.difficulties.has(d) ? 'is-on chip--teal' : ''}`}
+                    onClick={() =>
+                      setFilters((f) => ({ ...f, difficulties: toggleSet(f.difficulties, d) }))
+                    }
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={filters.availableOnly}
+                onChange={(e) => setFilters((f) => ({ ...f, availableOnly: e.target.checked }))}
+              />
+              <span>只看可拿（不含已借出）</span>
+            </label>
+          </div>
+        ) : null}
       </section>
 
       <section className="list-section">
         <div className="list-header">
           <h2>遊戲列表</h2>
-          <span>
-            共 {filtered.length} 款 · 點卡片查看詳情
-          </span>
+          <span>共 {filtered.length} 款</span>
         </div>
 
         {filtered.length === 0 ? (
