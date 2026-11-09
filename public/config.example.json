@@ -1,0 +1,4 @@
+{
+  "gamesCsvUrl": "https://docs.google.com/spreadsheets/d/<SHEET_ID>/gviz/tq?tqx=out:csv&sheet=games",
+  "paramsCsvUrl": "https://docs.google.com/spreadsheets/d/<SHEET_ID>/gviz/tq?tqx=out:csv&sheet=params"
+}

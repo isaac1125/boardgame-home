@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
+
+:root {
+  --cream: #fff8e8;
+  --panel: #ffffff;
+  --ink: #111111;
+  --yellow: #ffd644;
+  --coral: #ff5f5f;
+  --teal: #4fd1c5;
+  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--cream);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 214, 68, 0.28), transparent 34%),
+    radial-gradient(circle at 88% 0%, rgba(79, 209, 197, 0.18), transparent 30%),
+    var(--cream);
+}
+
+button,
+input {
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
