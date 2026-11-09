@@ -9,6 +9,7 @@ export type Game = {
   location: string
   lentTo: string
   unopened: boolean
+  thumbnailUrl: string
   rulesVideoUrl: string
   notes: string
 }

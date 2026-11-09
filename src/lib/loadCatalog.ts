@@ -25,6 +25,7 @@ function mapGame(row: Record<string, string>): Game | null {
     location: (row.location ?? '').trim(),
     lentTo: (row.lent_to ?? '').trim(),
     unopened: parseBool(row.unopened ?? ''),
+    thumbnailUrl: (row.thumbnail_url ?? '').trim(),
     rulesVideoUrl: (row.rules_video_url ?? '').trim(),
     notes: (row.notes ?? '').trim(),
   }

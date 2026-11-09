@@ -44,6 +44,31 @@ function matchesFilters(game: Game, filters: Filters): boolean {
   return true
 }
 
+function CoverThumb({
+  url,
+  name,
+  size = 'card',
+}: {
+  url: string
+  name: string
+  size?: 'card' | 'detail'
+}) {
+  const [broken, setBroken] = useState(false)
+  const showImg = Boolean(url) && !broken
+
+  return (
+    <div className={`cover cover--${size}`} aria-hidden={showImg ? undefined : true}>
+      {showImg ? (
+        <img src={url} alt="" loading="lazy" onError={() => setBroken(true)} />
+      ) : (
+        <div className="cover__placeholder">
+          <span>{name.slice(0, 1) || '?'}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function GameCard({
   game,
   showLocation,
@@ -56,24 +81,29 @@ function GameCard({
   const time = formatPlayTime(game)
   return (
     <button type="button" className="game-card" onClick={onOpen}>
-      <div className="game-card__top">
-        <h3>{game.name}</h3>
-        <span className="chev">→</span>
-      </div>
-      <div className="meta-row">
-        <span className="pill">{formatPlayers(game)}</span>
-        {time ? <span className="pill pill--time">{time}</span> : null}
-      </div>
-      <div className="meta-row">
-        {game.category ? <span className="tag tag--yellow">{game.category}</span> : null}
-        {game.difficulty ? <span className="tag tag--teal">{game.difficulty}</span> : null}
-      </div>
-      <div className="badge-row">
-        {game.unopened ? <span className="badge badge--coral">未開封</span> : null}
-        {game.lentTo ? <span className="badge badge--muted">已借出</span> : null}
-        {showLocation && game.location ? (
-          <span className="badge badge--outline">{game.location}</span>
-        ) : null}
+      <div className="game-card__body">
+        <CoverThumb url={game.thumbnailUrl} name={game.name} size="card" />
+        <div className="game-card__content">
+          <div className="game-card__top">
+            <h3>{game.name}</h3>
+            <span className="chev">→</span>
+          </div>
+          <div className="meta-row">
+            <span className="pill">{formatPlayers(game)}</span>
+            {time ? <span className="pill pill--time">{time}</span> : null}
+          </div>
+          <div className="meta-row">
+            {game.category ? <span className="tag tag--yellow">{game.category}</span> : null}
+            {game.difficulty ? <span className="tag tag--teal">{game.difficulty}</span> : null}
+          </div>
+          <div className="badge-row">
+            {game.unopened ? <span className="badge badge--coral">未開封</span> : null}
+            {game.lentTo ? <span className="badge badge--muted">已借出</span> : null}
+            {showLocation && game.location ? (
+              <span className="badge badge--outline">{game.location}</span>
+            ) : null}
+          </div>
+        </div>
       </div>
     </button>
   )
@@ -101,7 +131,10 @@ function DetailPanel({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="detail-panel__header">
-          <h2>{game.name}</h2>
+          <div className="detail-panel__title-row">
+            <CoverThumb url={game.thumbnailUrl} name={game.name} size="detail" />
+            <h2>{game.name}</h2>
+          </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="關閉">
             ×
           </button>
