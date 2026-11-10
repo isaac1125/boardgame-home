@@ -398,7 +398,7 @@
 .game-card--lent {
   z-index: 2;
   /* Extra bottom room so the upright stamp sits under category/meta */
-  padding-bottom: 2.15rem;
+  padding-bottom: 3.45rem;
 }
 
 /* Decorative children must not steal taps on mobile browsers */
@@ -420,7 +420,7 @@
 .lent-seal {
   position: absolute;
   right: 0.4rem;
-  bottom: 0.2rem;
+  bottom: 0.1rem;
   z-index: 5;
   transform: none;
 }
