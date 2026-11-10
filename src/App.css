@@ -467,12 +467,14 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  margin: 0.1rem auto 0;
-  padding: 0 0.08rem 0.06rem;
-  font-size: 0.56rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  line-height: 1.35;
+  margin: 0.08rem auto 0;
+  padding: 0.02rem 0.08rem 0.08rem;
+  /* CJK-safe face — Special Elite lacks Han glyphs; overflow+tight lh clips them */
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.55;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
