@@ -421,8 +421,9 @@
   right: 0.2rem;
   bottom: 0.35rem;
   z-index: 5;
-  transform: rotate(9deg);
-  transform-origin: 70% 70%;
+  /* Negative tilt reads better bottom-right (pre–+9deg resting angle) */
+  transform: rotate(-18deg);
+  transform-origin: 75% 80%;
 }
 
 .lent-seal__face {
@@ -938,15 +939,15 @@
   @keyframes stamp-down {
     0% {
       opacity: 0;
-      transform: rotate(20deg) scale(1.38);
+      transform: rotate(-32deg) scale(1.38);
     }
     68% {
       opacity: 1;
-      transform: rotate(6deg) scale(0.94);
+      transform: rotate(-12deg) scale(0.94);
     }
     100% {
       opacity: 1;
-      transform: rotate(9deg) scale(1);
+      transform: rotate(-18deg) scale(1);
     }
   }
 
