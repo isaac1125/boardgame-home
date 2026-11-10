@@ -412,25 +412,22 @@
 }
 
 /*
- * Lent stamp — match Baker St BBQ dossier .stamp:
- * rectangular rubber-ink mark, wax red, typewriter face,
- * slight rotate, multiply blend, worn mask.
+ * Lent stamp — Baker St BBQ dossier rubber-ink mark:
+ * upright in empty bottom-right; wax red, typewriter, multiply.
  */
 .lent-seal {
   position: absolute;
-  /* Clear 12px radius + 3px border so tilted mark stays fully visible */
-  right: 1.4rem;
-  bottom: 1.15rem;
+  right: 0.45rem;
+  bottom: 0.4rem;
   z-index: 5;
-  transform: rotate(-8deg);
-  transform-origin: center center;
+  transform: none;
 }
 
 .lent-seal__face {
   display: block;
   box-sizing: border-box;
-  min-width: 4.2rem;
-  padding: 0.22rem 0.4rem 0.18rem;
+  min-width: 5.6rem;
+  padding: 0.36rem 0.58rem 0.3rem;
   text-align: center;
   color: var(--wax);
   background: transparent;
@@ -457,27 +454,32 @@
 
 .lent-seal__text {
   display: block;
-  font-size: 0.86rem;
+  font-size: 1.08rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   line-height: 1.15;
 }
 
 .lent-seal__who {
   display: block;
-  max-width: 4rem;
-  margin: 0.08rem auto 0;
-  font-size: 0.52rem;
+  max-width: 5.2rem;
+  margin: 0.12rem auto 0;
+  font-size: 0.62rem;
   font-weight: 400;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Keep location / players / time clear of the stamp corner */
+.game-card--lent .meta-row {
+  padding-right: 6.4rem;
+}
+
 .meta-item--loc-under-seal {
-  margin-right: 4.4rem;
+  margin-right: 0;
 }
 
 .game-card:hover {
@@ -939,15 +941,15 @@
   @keyframes stamp-down {
     0% {
       opacity: 0;
-      transform: rotate(-18deg) scale(1.18);
+      transform: scale(1.16);
     }
-    68% {
+    70% {
       opacity: 1;
-      transform: rotate(-4deg) scale(0.94);
+      transform: scale(0.96);
     }
     100% {
       opacity: 1;
-      transform: rotate(-8deg) scale(1);
+      transform: scale(1);
     }
   }
 
