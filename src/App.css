@@ -51,6 +51,51 @@
   margin-bottom: 0.55rem;
 }
 
+.presets {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding-bottom: 0.1rem;
+}
+
+.preset-chip {
+  flex-shrink: 0;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.78rem;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.4rem 0.7rem;
+  min-height: 2.25rem;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+
+.preset-chip.is-on {
+  background: var(--coral);
+  color: #fff;
+}
+
+.preset-chip--clear {
+  background: #f3eee4;
+  font-size: 0.72rem;
+  box-shadow: 2px 2px 0 var(--ink);
+  border-width: 2px;
+}
+
+.preset-chip:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -177,10 +222,13 @@
 
 .chip {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font: inherit;
   font-weight: 800;
   font-size: 0.8rem;
-  border: 2px solid var(--ink);
+  border: 3px solid var(--ink);
   border-radius: 999px;
   background: #fff;
   padding: 0.4rem 0.75rem;
@@ -193,15 +241,42 @@
 
 .chip.is-on.chip--yellow {
   background: var(--yellow);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: translate(-1px, -1px);
 }
 
-.chip.is-on.chip--teal {
-  background: var(--teal);
+.chip.is-on.chip--diff {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 4px 4px 0 var(--coral);
+  transform: translate(-1px, -1px);
+}
+
+.chip.is-on.chip--diff .diff-meter i {
+  border-color: #fff;
+  background: transparent;
+}
+
+.chip.is-on.chip--diff .diff-meter i.is-on {
+  background: var(--yellow);
+  border-color: var(--yellow);
 }
 
 .chip:active {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 var(--ink);
+}
+
+.chip.is-on:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.toggle-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
 }
 
 .toggle {
@@ -210,14 +285,17 @@
   gap: 0.45rem;
   font-weight: 800;
   font-size: 0.85rem;
-  margin-top: 0.15rem;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+  min-height: 2rem;
 }
 
 .toggle input {
   width: 1.05rem;
   height: 1.05rem;
   accent-color: var(--coral);
+  flex-shrink: 0;
 }
 
 .list-header {
@@ -240,6 +318,60 @@
   font-size: 0.82rem;
 }
 
+.grouped-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sticky-sentinel {
+  height: 1px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.player-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.player-group__header {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.45rem 0.7rem;
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: box-shadow 0.18s ease;
+}
+
+.player-group__header.is-stuck {
+  box-shadow: 4px 7px 0 var(--ink);
+}
+
+.player-group__title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.player-group__count {
+  font-size: 0.75rem;
+  font-weight: 800;
+  opacity: 0.7;
+}
+
 .game-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -257,9 +389,14 @@
   font: inherit;
   position: relative;
   z-index: 1;
+  overflow: hidden;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
   touch-action: manipulation;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.game-card--lent {
+  z-index: 2;
 }
 
 /* Decorative children must not steal taps on mobile browsers */
@@ -267,8 +404,92 @@
 .game-card .cover,
 .game-card .cover__placeholder,
 .game-card .chev,
+.game-card .meta-icon,
+.game-card .diff-meter,
+.game-card .lent-seal,
 .filter-summary__chev {
   pointer-events: none;
+}
+
+/*
+ * Lent stamp — Baker St BBQ dossier rubber-ink mark:
+ * upright in empty bottom-right; wax red, typewriter, multiply.
+ */
+.lent-seal {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.28rem;
+  z-index: 5;
+  transform: none;
+  /* Stay under difficulty meter — compact footprint, no card stretch */
+  max-height: 2.55rem;
+}
+
+.lent-seal__face {
+  display: block;
+  box-sizing: border-box;
+  min-width: 4.4rem;
+  max-width: 5.1rem;
+  max-height: inherit;
+  padding: 0.14rem 0.38rem 0.22rem;
+  text-align: center;
+  color: var(--wax);
+  background: transparent;
+  border: 2.5px solid var(--wax);
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--wax);
+  font-family: var(--stamp-type);
+  line-height: 1.15;
+  opacity: 0.9;
+  mix-blend-mode: multiply;
+  /* Soft corner wear only — do not fade the borrower name */
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 42%,
+    #000 70%,
+    #000 92%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 42%,
+    #000 70%,
+    #000 92%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+.lent-seal__text {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.08;
+}
+
+.lent-seal__who {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.02rem auto 0;
+  padding: 0.02rem 0.05rem 0.02rem;
+  /* CJK-safe face — Special Elite lacks Han glyphs; overflow+tight lh clips them */
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Keep location / players / time clear of the stamp corner */
+.game-card--lent .meta-row {
+  padding-right: 5.2rem;
+}
+
+.meta-item--loc-under-seal {
+  margin-right: 0;
 }
 
 .game-card:hover {
@@ -284,7 +505,7 @@
 .game-card__body {
   display: flex;
   gap: 0.55rem;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .game-card__content {
@@ -292,13 +513,14 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  align-self: stretch;
 }
 
 .game-card__top {
   display: flex;
   justify-content: space-between;
-  gap: 0.35rem;
+  gap: 0.45rem;
   align-items: flex-start;
 }
 
@@ -307,6 +529,104 @@
   font-size: 0.98rem;
   font-weight: 900;
   line-height: 1.25;
+  flex: 1;
+  min-width: 0;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.tag-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem 0.12rem 0.38rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #fff;
+  line-height: 1.2;
+}
+
+.tag-diff--corner {
+  flex-shrink: 0;
+  max-width: 46%;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.tag-diff__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Equal-height segments: count filled blocks (clearer than staircase) */
+.diff-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 0.85rem;
+  padding: 1px;
+}
+
+.diff-meter i {
+  display: block;
+  width: 0.42rem;
+  height: 100%;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: #efe8da;
+  box-sizing: border-box;
+}
+
+.diff-meter i.is-on {
+  background: var(--ink);
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem 0.55rem;
+  margin-top: auto;
+}
+
+.meta-row__main {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.7rem;
+  min-width: 0;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.2;
+}
+
+.meta-item--loc {
+  margin-left: auto;
+  color: #555;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.meta-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .cover {
@@ -375,13 +695,6 @@
   opacity: 0.7;
 }
 
-.meta-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.45rem;
-}
-
 .tag-cat {
   display: inline-flex;
   align-items: center;
@@ -392,13 +705,6 @@
   font-weight: 800;
   background: var(--yellow);
   line-height: 1.2;
-}
-
-.meta-plain {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #333;
-  line-height: 1.3;
 }
 
 .status-line {
@@ -598,5 +904,78 @@
   .chips--scroll {
     flex-wrap: wrap;
     overflow: visible;
+  }
+
+  .presets {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+/* —— Restrained motion (skip when reduced-motion) —— */
+@media (prefers-reduced-motion: no-preference) {
+  .list-swap {
+    animation: list-fade 0.28s ease both;
+  }
+
+  @keyframes list-fade {
+    from {
+      opacity: 0.28;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .game-card {
+    animation: card-rise 0.38s ease both;
+    animation-delay: calc(var(--enter-i, 0) * 32ms);
+  }
+
+  /* Use `translate` (not `transform`) so hover/active transforms still work */
+  @keyframes card-rise {
+    from {
+      opacity: 0;
+      translate: 0 10px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .lent-seal {
+    animation: stamp-down 0.45s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  }
+
+  @keyframes stamp-down {
+    0% {
+      opacity: 0;
+      transform: scale(1.16);
+    }
+    70% {
+      opacity: 1;
+      transform: scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .player-group__header.is-stuck {
+    transition: box-shadow 0.2s ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-swap,
+  .game-card,
+  .lent-seal {
+    animation: none !important;
+  }
+
+  .player-group__header {
+    transition: none;
   }
 }
