@@ -12,13 +12,14 @@ type Filters = {
   players: string
   categories: Set<string>
   difficulties: Set<string>
-  availableOnly: boolean
   /** games with players_max >= this (scenario: 小組多人) */
   playersMaxAtLeast: number | null
   /** effective play time (max, else min) <= this; missing times excluded */
   playTimeCap: number | null
-  /** default off = 教會 only; on = 教會 + 家裡 + blank/other */
-  includeHome: boolean
+  /** default off = 教會 only; on = also include non-教會 locations */
+  includeNonChurch: boolean
+  /** default off = hide lent; on = also show lent games */
+  includeLent: boolean
 }
 
 const emptyFilters = (): Filters => ({
@@ -26,10 +27,10 @@ const emptyFilters = (): Filters => ({
   players: '',
   categories: new Set(),
   difficulties: new Set(),
-  availableOnly: false,
   playersMaxAtLeast: null,
   playTimeCap: null,
-  includeHome: false,
+  includeNonChurch: false,
+  includeLent: false,
 })
 
 const PRESETS: Record<
@@ -85,11 +86,11 @@ function matchesFilters(game: Game, filters: Filters): boolean {
     if (t == null || t > filters.playTimeCap) return false
   }
 
-  if (!filters.includeHome && game.location !== '教會') return false
+  if (!filters.includeNonChurch && game.location !== '教會') return false
+  if (!filters.includeLent && game.lentTo) return false
 
   if (filters.categories.size > 0 && !filters.categories.has(game.category)) return false
   if (filters.difficulties.size > 0 && !filters.difficulties.has(game.difficulty)) return false
-  if (filters.availableOnly && game.lentTo) return false
 
   return true
 }
@@ -101,16 +102,17 @@ function filterSummary(filters: Filters): string {
   if (filters.playTimeCap != null) bits.push(`≤${filters.playTimeCap} 分`)
   if (filters.categories.size) bits.push([...filters.categories].join('、'))
   if (filters.difficulties.size) bits.push([...filters.difficulties].join('、'))
-  if (filters.availableOnly) bits.push('只看可拿')
-  if (filters.includeHome) bits.push('含家裡')
-  return bits.length ? bits.join(' · ') : '類別／難度／可拿'
+  if (filters.includeNonChurch) bits.push('含非教會')
+  if (filters.includeLent) bits.push('含已借出')
+  return bits.length ? bits.join(' · ') : '類別／難度／顯示'
 }
 
 function activeFilterCount(filters: Filters): number {
   return (
     filters.categories.size +
     filters.difficulties.size +
-    (filters.availableOnly ? 1 : 0) +
+    (filters.includeNonChurch ? 1 : 0) +
+    (filters.includeLent ? 1 : 0) +
     (filters.playersMaxAtLeast != null ? 1 : 0) +
     (filters.playTimeCap != null ? 1 : 0)
   )
@@ -440,11 +442,19 @@ export default function App() {
 
   function applyPreset(id: PresetId) {
     if (activePreset === id) {
-      setFilters((f) => ({ ...emptyFilters(), includeHome: f.includeHome }))
+      setFilters((f) => ({
+        ...emptyFilters(),
+        includeNonChurch: f.includeNonChurch,
+        includeLent: f.includeLent,
+      }))
       setActivePreset(null)
       return
     }
-    setFilters((f) => ({ ...PRESETS[id].apply(), includeHome: f.includeHome }))
+    setFilters((f) => ({
+      ...PRESETS[id].apply(),
+      includeNonChurch: f.includeNonChurch,
+      includeLent: f.includeLent,
+    }))
     setActivePreset(id)
   }
 
@@ -537,7 +547,7 @@ export default function App() {
               {PRESETS[id].label}
             </button>
           ))}
-          {activePreset || chipCount > 0 || filters.players.trim() || filters.name.trim() || filters.includeHome ? (
+          {activePreset || chipCount > 0 || filters.players.trim() || filters.name.trim() ? (
             <button type="button" className="preset-chip preset-chip--clear" onClick={clearAllFilters}>
               清除
             </button>
@@ -546,15 +556,13 @@ export default function App() {
 
         <button
           type="button"
-          className={`filter-summary ${filtersOpen ? 'is-open' : ''} ${chipCount || filters.includeHome ? 'has-active' : ''}`}
+          className={`filter-summary ${filtersOpen ? 'is-open' : ''} ${chipCount ? 'has-active' : ''}`}
           aria-expanded={filtersOpen}
           onClick={() => setFiltersOpen((v) => !v)}
         >
           <span className="filter-summary__label">
             篩選
-            {chipCount > 0 || filters.includeHome ? (
-              <em>{chipCount + (filters.includeHome ? 1 : 0)}</em>
-            ) : null}
+            {chipCount > 0 ? <em>{chipCount}</em> : null}
           </span>
           <span className="filter-summary__text">{filterSummary(filters)}</span>
           <span className="filter-summary__chev" aria-hidden>
@@ -606,21 +614,20 @@ export default function App() {
               <label className="toggle">
                 <input
                   type="checkbox"
-                  checked={filters.includeHome}
-                  onChange={(e) => setFilters((f) => ({ ...f, includeHome: e.target.checked }))}
+                  checked={filters.includeNonChurch}
+                  onChange={(e) =>
+                    setFilters((f) => ({ ...f, includeNonChurch: e.target.checked }))
+                  }
                 />
-                <span>顯示家裡</span>
+                <span>顯示不在教會的</span>
               </label>
               <label className="toggle">
                 <input
                   type="checkbox"
-                  checked={filters.availableOnly}
-                  onChange={(e) => {
-                    setActivePreset(null)
-                    setFilters((f) => ({ ...f, availableOnly: e.target.checked }))
-                  }}
+                  checked={filters.includeLent}
+                  onChange={(e) => setFilters((f) => ({ ...f, includeLent: e.target.checked }))}
                 />
-                <span>只看可拿（不含已借出）</span>
+                <span>顯示已借出的</span>
               </label>
             </div>
           </div>
