@@ -222,10 +222,13 @@
 
 .chip {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font: inherit;
   font-weight: 800;
   font-size: 0.8rem;
-  border: 2px solid var(--ink);
+  border: 3px solid var(--ink);
   border-radius: 999px;
   background: #fff;
   padding: 0.4rem 0.75rem;
@@ -238,18 +241,35 @@
 
 .chip.is-on.chip--yellow {
   background: var(--yellow);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: translate(-1px, -1px);
 }
 
 .chip.is-on.chip--diff {
-  background: #fff;
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-  box-shadow: 2px 2px 0 var(--ink);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 4px 4px 0 var(--coral);
+  transform: translate(-1px, -1px);
+}
+
+.chip.is-on.chip--diff .diff-meter i {
+  border-color: #fff;
+  background: transparent;
+}
+
+.chip.is-on.chip--diff .diff-meter i.is-on {
+  background: var(--yellow);
+  border-color: var(--yellow);
 }
 
 .chip:active {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 var(--ink);
+}
+
+.chip.is-on:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .toggle-stack {

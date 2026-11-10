@@ -580,6 +580,7 @@ export default function App() {
                     key={c}
                     type="button"
                     className={`chip ${filters.categories.has(c) ? 'is-on chip--yellow' : ''}`}
+                    aria-pressed={filters.categories.has(c)}
                     onClick={() => {
                       setActivePreset(null)
                       setFilters((f) => ({ ...f, categories: toggleSet(f.categories, c) }))
@@ -599,11 +600,13 @@ export default function App() {
                     key={d}
                     type="button"
                     className={`chip ${filters.difficulties.has(d) ? 'is-on chip--diff' : ''}`}
+                    aria-pressed={filters.difficulties.has(d)}
                     onClick={() => {
                       setActivePreset(null)
                       setFilters((f) => ({ ...f, difficulties: toggleSet(f.difficulties, d) }))
                     }}
                   >
+                    <DiffMeter level={difficultyLevel(d)} />
                     {d}
                   </button>
                 ))}
