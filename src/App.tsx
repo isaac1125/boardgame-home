@@ -191,6 +191,17 @@ function IconClock() {
   )
 }
 
+function IconPin() {
+  return (
+    <svg className="meta-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M8 1.5A4.5 4.5 0 0 0 3.5 6c0 2.7 3.2 6.4 4.1 7.4a.6.6 0 0 0 .9 0c.9-1 4.1-4.7 4.1-7.4A4.5 4.5 0 0 0 8 1.5Zm0 6.2A1.7 1.7 0 1 1 8 4.3a1.7 1.7 0 0 1 0 3.4Z"
+      />
+    </svg>
+  )
+}
+
 function formatPlayersRange(game: Game): string {
   if (game.playersMin === game.playersMax) return `${game.playersMax}`
   return `${game.playersMin}–${game.playersMax}`
@@ -262,18 +273,23 @@ function GameCard({
           ) : null}
 
           <div className="meta-row">
-            <span className="meta-item" title="人數">
-              <IconPeople />
-              <span>{formatPlayersRange(game)}</span>
-            </span>
-            {time ? (
-              <span className="meta-item" title="預計時間">
-                <IconClock />
-                <span>{time}</span>
+            <div className="meta-row__main">
+              <span className="meta-item" title="人數">
+                <IconPeople />
+                <span>{formatPlayersRange(game)}</span>
               </span>
-            ) : null}
+              {time ? (
+                <span className="meta-item" title="預計時間">
+                  <IconClock />
+                  <span>{time}</span>
+                </span>
+              ) : null}
+            </div>
             {showLocation && game.location ? (
-              <span className="meta-item meta-item--loc">{game.location}</span>
+              <span className="meta-item meta-item--loc" title="放置位置">
+                <IconPin />
+                <span>{game.location}</span>
+              </span>
             ) : null}
           </div>
 
