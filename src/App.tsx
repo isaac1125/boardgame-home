@@ -240,7 +240,7 @@ function LentSeal({ who }: { who: string }) {
     <span className="lent-seal" aria-hidden="true">
       <span className="lent-seal__face">
         <span className="lent-seal__text">已借出</span>
-        {who ? <span className="lent-seal__who">{who}</span> : null}
+        {who ? <small className="lent-seal__who">{who}</small> : null}
       </span>
     </span>
   )

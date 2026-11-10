@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Special+Elite&display=swap');
 
 :root {
   --cream: #fff8e8;
@@ -7,6 +7,9 @@
   --yellow: #ffd644;
   --coral: #ff5f5f;
   --teal: #4fd1c5;
+  /* Baker St dossier stamp ink */
+  --wax: #8e2b2b;
+  --stamp-type: 'Special Elite', 'Noto Sans TC', 'Courier New', Courier, monospace;
   font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
   line-height: 1.45;
   font-weight: 500;
