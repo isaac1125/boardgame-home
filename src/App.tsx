@@ -245,20 +245,21 @@ function GameCard({
         <div className="game-card__content">
           <div className="game-card__top">
             <h3>{game.name}</h3>
-            <span className="chev">→</span>
+            {game.difficulty ? (
+              <span className="tag-diff tag-diff--corner" title={`難度：${game.difficulty}`}>
+                <DiffMeter level={difficultyLevel(game.difficulty)} />
+                <span className="tag-diff__label">{game.difficulty}</span>
+              </span>
+            ) : (
+              <span className="chev">→</span>
+            )}
           </div>
 
-          {(game.category || game.difficulty) && (
+          {game.category ? (
             <div className="tag-row">
-              {game.category ? <span className="tag-cat">{game.category}</span> : null}
-              {game.difficulty ? (
-                <span className="tag-diff">
-                  <DiffMeter level={difficultyLevel(game.difficulty)} />
-                  {game.difficulty}
-                </span>
-              ) : null}
+              <span className="tag-cat">{game.category}</span>
             </div>
-          )}
+          ) : null}
 
           <div className="meta-row">
             <span className="meta-item" title="人數">
