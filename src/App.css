@@ -240,7 +240,24 @@
   background: var(--yellow);
 }
 
-.chip.is-on.chip--teal {
+.chip.is-on.chip--diff-1 {
+  background: var(--diff-1);
+}
+
+.chip.is-on.chip--diff-2 {
+  background: var(--diff-2);
+}
+
+.chip.is-on.chip--diff-3 {
+  background: var(--diff-3);
+}
+
+.chip.is-on.chip--diff-4 {
+  background: var(--diff-4);
+  color: #fff;
+}
+
+.chip.is-on.chip--diff-x {
   background: var(--teal);
 }
 
@@ -415,13 +432,37 @@
 .tag-diff {
   display: inline-flex;
   align-items: center;
-  border: 2px solid var(--ink);
+  border: 2px dashed var(--ink);
   border-radius: 999px;
   padding: 0.08rem 0.45rem;
   font-size: 0.72rem;
   font-weight: 800;
-  background: var(--teal);
+  background: #fff;
   line-height: 1.2;
+}
+
+.tag-diff--1 {
+  background: var(--diff-1);
+}
+
+.tag-diff--2 {
+  background: var(--diff-2);
+  border-style: solid;
+}
+
+.tag-diff--3 {
+  background: var(--diff-3);
+  border-style: solid;
+}
+
+.tag-diff--4 {
+  background: var(--diff-4);
+  border-style: solid;
+  color: #fff;
+}
+
+.tag-diff--x {
+  background: #fff;
 }
 
 .meta-row {

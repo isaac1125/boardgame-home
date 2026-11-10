@@ -7,6 +7,11 @@
   --yellow: #ffd644;
   --coral: #ff5f5f;
   --teal: #4fd1c5;
+  /* Difficulty scale: light → hot (無腦 → 燒腦) */
+  --diff-1: #ffffff;
+  --diff-2: #c9f3ec;
+  --diff-3: #4fd1c5;
+  --diff-4: #ff5f5f;
   font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
   line-height: 1.45;
   font-weight: 500;
