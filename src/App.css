@@ -439,18 +439,18 @@
   line-height: 1.2;
   opacity: 0.9;
   mix-blend-mode: multiply;
-  /* Mild wear — keep bottom of name readable (avoid heavy edge fade) */
+  /* Soft corner wear only — do not fade the borrower name */
   -webkit-mask-image: radial-gradient(
-    circle at 50% 45%,
-    #000 62%,
-    rgba(0, 0, 0, 0.75) 88%,
-    #000
+    circle at 50% 42%,
+    #000 70%,
+    #000 92%,
+    rgba(0, 0, 0, 0.85) 100%
   );
   mask-image: radial-gradient(
-    circle at 50% 45%,
-    #000 62%,
-    rgba(0, 0, 0, 0.75) 88%,
-    #000
+    circle at 50% 42%,
+    #000 70%,
+    #000 92%,
+    rgba(0, 0, 0, 0.85) 100%
   );
 }
 
