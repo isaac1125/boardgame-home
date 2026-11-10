@@ -422,16 +422,16 @@
   z-index: 5;
   transform: none;
   /* Stay under difficulty meter — compact footprint, no card stretch */
-  max-height: 2.85rem;
+  max-height: 2.55rem;
 }
 
 .lent-seal__face {
   display: block;
   box-sizing: border-box;
-  min-width: 4.6rem;
-  max-width: 5.4rem;
+  min-width: 4.4rem;
+  max-width: 5.1rem;
   max-height: inherit;
-  padding: 0.18rem 0.42rem 0.28rem;
+  padding: 0.14rem 0.38rem 0.22rem;
   text-align: center;
   color: var(--wax);
   background: transparent;
@@ -459,10 +459,10 @@
 
 .lent-seal__text {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  line-height: 1.1;
+  letter-spacing: 0.12em;
+  line-height: 1.08;
 }
 
 .lent-seal__who {
@@ -470,14 +470,14 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  margin: 0.04rem auto 0;
-  padding: 0.02rem 0.06rem 0.04rem;
+  margin: 0.02rem auto 0;
+  padding: 0.02rem 0.05rem 0.02rem;
   /* CJK-safe face — Special Elite lacks Han glyphs; overflow+tight lh clips them */
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1.45;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
