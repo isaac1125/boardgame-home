@@ -240,25 +240,11 @@
   background: var(--yellow);
 }
 
-.chip.is-on.chip--diff-1 {
-  background: var(--diff-1);
-}
-
-.chip.is-on.chip--diff-2 {
-  background: var(--diff-2);
-}
-
-.chip.is-on.chip--diff-3 {
-  background: var(--diff-3);
-}
-
-.chip.is-on.chip--diff-4 {
-  background: var(--diff-4);
-  color: #fff;
-}
-
-.chip.is-on.chip--diff-x {
-  background: var(--teal);
+.chip.is-on.chip--diff {
+  background: #fff;
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .chip:active {
@@ -380,6 +366,7 @@
 .game-card .cover__placeholder,
 .game-card .chev,
 .game-card .meta-icon,
+.game-card .diff-meter,
 .filter-summary__chev {
   pointer-events: none;
 }
@@ -432,37 +419,47 @@
 .tag-diff {
   display: inline-flex;
   align-items: center;
-  border: 2px dashed var(--ink);
+  gap: 0.28rem;
+  border: 2px solid var(--ink);
   border-radius: 999px;
-  padding: 0.08rem 0.45rem;
+  padding: 0.08rem 0.45rem 0.08rem 0.32rem;
   font-size: 0.72rem;
   font-weight: 800;
   background: #fff;
   line-height: 1.2;
 }
 
-.tag-diff--1 {
-  background: var(--diff-1);
+.diff-meter {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.72rem;
 }
 
-.tag-diff--2 {
-  background: var(--diff-2);
-  border-style: solid;
-}
-
-.tag-diff--3 {
-  background: var(--diff-3);
-  border-style: solid;
-}
-
-.tag-diff--4 {
-  background: var(--diff-4);
-  border-style: solid;
-  color: #fff;
-}
-
-.tag-diff--x {
+.diff-meter i {
+  display: block;
+  width: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 1px;
   background: #fff;
+  box-sizing: border-box;
+}
+
+.diff-meter i:nth-child(1) {
+  height: 35%;
+}
+.diff-meter i:nth-child(2) {
+  height: 55%;
+}
+.diff-meter i:nth-child(3) {
+  height: 75%;
+}
+.diff-meter i:nth-child(4) {
+  height: 100%;
+}
+
+.diff-meter i.is-on {
+  background: var(--ink);
 }
 
 .meta-row {

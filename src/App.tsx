@@ -196,20 +196,30 @@ function formatPlayersRange(game: Game): string {
   return `${game.playersMin}–${game.playersMax}`
 }
 
-/** Ordinal tone for known difficulties; unknown → neutral outline. */
-function difficultyTone(difficulty: string): '1' | '2' | '3' | '4' | 'x' {
+/** 1–4 for known difficulties; 0 = unknown. */
+function difficultyLevel(difficulty: string): 0 | 1 | 2 | 3 | 4 {
   switch (difficulty) {
     case '無腦':
-      return '1'
+      return 1
     case '輕鬆':
-      return '2'
+      return 2
     case '動腦':
-      return '3'
+      return 3
     case '燒腦':
-      return '4'
+      return 4
     default:
-      return 'x'
+      return 0
   }
+}
+
+function DiffMeter({ level }: { level: 0 | 1 | 2 | 3 | 4 }) {
+  return (
+    <span className="diff-meter" aria-hidden="true">
+      {([1, 2, 3, 4] as const).map((n) => (
+        <i key={n} className={level >= n ? 'is-on' : undefined} />
+      ))}
+    </span>
+  )
 }
 
 function GameCard({
@@ -242,7 +252,8 @@ function GameCard({
             <div className="tag-row">
               {game.category ? <span className="tag-cat">{game.category}</span> : null}
               {game.difficulty ? (
-                <span className={`tag-diff tag-diff--${difficultyTone(game.difficulty)}`}>
+                <span className="tag-diff">
+                  <DiffMeter level={difficultyLevel(game.difficulty)} />
                   {game.difficulty}
                 </span>
               ) : null}
@@ -562,7 +573,7 @@ export default function App() {
                   <button
                     key={d}
                     type="button"
-                    className={`chip ${filters.difficulties.has(d) ? `is-on chip--diff-${difficultyTone(d)}` : ''}`}
+                    className={`chip ${filters.difficulties.has(d) ? 'is-on chip--diff' : ''}`}
                     onClick={() => {
                       setActivePreset(null)
                       setFilters((f) => ({ ...f, difficulties: toggleSet(f.difficulties, d) }))
