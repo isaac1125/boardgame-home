@@ -397,8 +397,6 @@
 
 .game-card--lent {
   z-index: 2;
-  /* Extra bottom room so the upright stamp sits under category/meta */
-  padding-bottom: 3.45rem;
 }
 
 /* Decorative children must not steal taps on mobile browsers */
@@ -420,7 +418,7 @@
 .lent-seal {
   position: absolute;
   right: 0.4rem;
-  bottom: 0.1rem;
+  bottom: 0.35rem;
   z-index: 5;
   transform: none;
 }
@@ -428,8 +426,9 @@
 .lent-seal__face {
   display: block;
   box-sizing: border-box;
-  min-width: 5.6rem;
-  padding: 0.32rem 0.58rem 0.26rem;
+  min-width: 5.4rem;
+  max-width: 6.4rem;
+  padding: 0.28rem 0.5rem 0.36rem;
   text-align: center;
   color: var(--wax);
   background: transparent;
@@ -437,39 +436,43 @@
   border-radius: 4px;
   box-shadow: inset 0 0 0 1px var(--wax);
   font-family: var(--stamp-type);
-  line-height: 1.25;
+  line-height: 1.2;
   opacity: 0.9;
   mix-blend-mode: multiply;
+  /* Mild wear — keep bottom of name readable (avoid heavy edge fade) */
   -webkit-mask-image: radial-gradient(
-    circle at 30% 40%,
-    #000 55%,
-    rgba(0, 0, 0, 0.55) 80%,
+    circle at 50% 45%,
+    #000 62%,
+    rgba(0, 0, 0, 0.75) 88%,
     #000
   );
   mask-image: radial-gradient(
-    circle at 30% 40%,
-    #000 55%,
-    rgba(0, 0, 0, 0.55) 80%,
+    circle at 50% 45%,
+    #000 62%,
+    rgba(0, 0, 0, 0.75) 88%,
     #000
   );
 }
 
 .lent-seal__text {
   display: block;
-  font-size: 1.08rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   line-height: 1.15;
 }
 
 .lent-seal__who {
   display: block;
-  max-width: 5.2rem;
-  margin: 0.12rem auto 0;
-  font-size: 0.62rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.14rem auto 0;
+  padding: 0 0.05rem;
+  font-size: 0.58rem;
   font-weight: 400;
-  letter-spacing: 0.16em;
-  line-height: 1.2;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
