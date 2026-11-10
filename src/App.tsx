@@ -235,24 +235,39 @@ function DiffMeter({ level }: { level: 0 | 1 | 2 | 3 | 4 }) {
   )
 }
 
+function LentSeal({ who }: { who: string }) {
+  return (
+    <span className="lent-seal" aria-hidden="true">
+      <span className="lent-seal__face">
+        <span className="lent-seal__text">已借出</span>
+        {who ? <span className="lent-seal__who">{who}</span> : null}
+      </span>
+    </span>
+  )
+}
+
 function GameCard({
   game,
   showLocation,
+  showLentTo,
   onOpen,
 }: {
   game: Game
   showLocation: boolean
+  showLentTo: boolean
   onOpen: () => void
 }) {
   const time = formatPlayTime(game)
-
-  const statusBits = [
-    game.unopened ? '未開封' : null,
-    game.lentTo ? '已借出' : null,
-  ].filter(Boolean)
+  const isLent = Boolean(game.lentTo)
+  const statusBits = [game.unopened ? '未開封' : null].filter(Boolean)
 
   return (
-    <button type="button" className="game-card" onClick={onOpen}>
+    <button
+      type="button"
+      className={`game-card ${isLent ? 'game-card--lent' : ''}`}
+      onClick={onOpen}
+      aria-label={isLent ? `${game.name}（已借出）` : undefined}
+    >
       <div className="game-card__body">
         <CoverThumb url={game.thumbnailUrl} name={game.name} size="card" />
         <div className="game-card__content">
@@ -288,7 +303,10 @@ function GameCard({
               ) : null}
             </div>
             {showLocation && game.location ? (
-              <span className="meta-item meta-item--loc" title="放置位置">
+              <span
+                className={`meta-item meta-item--loc ${isLent ? 'meta-item--loc-under-seal' : ''}`}
+                title="放置位置"
+              >
                 <IconPin />
                 <span>{game.location}</span>
               </span>
@@ -300,6 +318,7 @@ function GameCard({
           ) : null}
         </div>
       </div>
+      {isLent ? <LentSeal who={showLentTo ? game.lentTo : ''} /> : null}
     </button>
   )
 }
@@ -659,6 +678,7 @@ export default function App() {
                       key={game.name}
                       game={game}
                       showLocation={data.settings.showLocation}
+                      showLentTo={data.settings.showLentTo}
                       onOpen={() => setSelected(game)}
                     />
                   ))}

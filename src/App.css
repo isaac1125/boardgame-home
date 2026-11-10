@@ -375,9 +375,14 @@
   font: inherit;
   position: relative;
   z-index: 1;
+  overflow: visible;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
   touch-action: manipulation;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.game-card--lent {
+  z-index: 2;
 }
 
 /* Decorative children must not steal taps on mobile browsers */
@@ -387,8 +392,68 @@
 .game-card .chev,
 .game-card .meta-icon,
 .game-card .diff-meter,
+.game-card .lent-seal,
 .filter-summary__chev {
   pointer-events: none;
+}
+
+/* Red wax-seal stamp for lent games — bottom-right, rotated */
+.lent-seal {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.45rem;
+  width: 5.1rem;
+  height: 5.1rem;
+  z-index: 5;
+  transform: rotate(-18deg);
+}
+
+.lent-seal__face {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  padding: 0.45rem;
+  box-sizing: border-box;
+  text-align: center;
+  color: #fff7f0;
+  background:
+    radial-gradient(circle at 30% 26%, #ff7a7a 0%, #e52828 46%, #a81212 100%);
+  border: 3px solid #6e0d0d;
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 240, 230, 0.22),
+    inset 0 0 0 8px #c51d1d,
+    4px 5px 0 rgba(17, 17, 17, 0.28);
+  /* Soft scalloped wax rim */
+  outline: 3px dashed rgba(255, 230, 220, 0.35);
+  outline-offset: -11px;
+}
+
+.lent-seal__text {
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.28);
+}
+
+.lent-seal__who {
+  max-width: 3.8rem;
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.92;
+}
+
+.meta-item--loc-under-seal {
+  margin-right: 3.4rem;
 }
 
 .game-card:hover {
