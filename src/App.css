@@ -324,6 +324,15 @@
   gap: 1rem;
 }
 
+.sticky-sentinel {
+  height: 1px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .player-group {
   display: flex;
   flex-direction: column;
@@ -344,6 +353,11 @@
   border: 3px solid var(--ink);
   border-radius: 10px;
   box-shadow: 4px 4px 0 var(--ink);
+  transition: box-shadow 0.18s ease;
+}
+
+.player-group__header.is-stuck {
+  box-shadow: 4px 7px 0 var(--ink);
 }
 
 .player-group__title {
@@ -408,6 +422,7 @@
   bottom: 0.35rem;
   z-index: 5;
   transform: rotate(9deg);
+  transform-origin: 70% 70%;
 }
 
 .lent-seal__face {
@@ -881,5 +896,73 @@
   .presets {
     flex-wrap: wrap;
     overflow: visible;
+  }
+}
+
+/* —— Restrained motion (skip when reduced-motion) —— */
+@media (prefers-reduced-motion: no-preference) {
+  .list-swap {
+    animation: list-fade 0.28s ease both;
+  }
+
+  @keyframes list-fade {
+    from {
+      opacity: 0.28;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .game-card {
+    animation: card-rise 0.38s ease both;
+    animation-delay: calc(var(--enter-i, 0) * 32ms);
+  }
+
+  /* Use `translate` (not `transform`) so hover/active transforms still work */
+  @keyframes card-rise {
+    from {
+      opacity: 0;
+      translate: 0 10px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .lent-seal {
+    animation: stamp-down 0.45s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  }
+
+  @keyframes stamp-down {
+    0% {
+      opacity: 0;
+      transform: rotate(20deg) scale(1.38);
+    }
+    68% {
+      opacity: 1;
+      transform: rotate(6deg) scale(0.94);
+    }
+    100% {
+      opacity: 1;
+      transform: rotate(9deg) scale(1);
+    }
+  }
+
+  .player-group__header.is-stuck {
+    transition: box-shadow 0.2s ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-swap,
+  .game-card,
+  .lent-seal {
+    animation: none !important;
+  }
+
+  .player-group__header {
+    transition: none;
   }
 }

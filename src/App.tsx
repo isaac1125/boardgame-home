@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import type { CatalogData, Game } from './types'
 import { formatPlayTime, formatPlayers } from './lib/format'
 import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
@@ -246,15 +247,49 @@ function LentSeal({ who }: { who: string }) {
   )
 }
 
+function StickyGroupHeader({
+  playersMax,
+  count,
+}: {
+  playersMax: number
+  count: number
+}) {
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const io = new IntersectionObserver(
+      ([entry]) => setStuck(!entry.isIntersecting),
+      { threshold: [0], rootMargin: '0px 0px 0px 0px' },
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [])
+
+  return (
+    <>
+      <div ref={sentinelRef} className="sticky-sentinel" aria-hidden="true" />
+      <h3 className={`player-group__header ${stuck ? 'is-stuck' : ''}`}>
+        <span className="player-group__title">{playersMax}人</span>
+        <span className="player-group__count">{count} 款</span>
+      </h3>
+    </>
+  )
+}
+
 function GameCard({
   game,
   showLocation,
   showLentTo,
+  enterIndex = 0,
   onOpen,
 }: {
   game: Game
   showLocation: boolean
   showLentTo: boolean
+  enterIndex?: number
   onOpen: () => void
 }) {
   const time = formatPlayTime(game)
@@ -265,6 +300,7 @@ function GameCard({
     <button
       type="button"
       className={`game-card ${isLent ? 'game-card--lent' : ''}`}
+      style={{ '--enter-i': Math.min(enterIndex, 14) } as CSSProperties}
       onClick={onOpen}
       aria-label={isLent ? `${game.name}（已借出）` : undefined}
     >
@@ -456,6 +492,23 @@ export default function App() {
   }, [data, filters])
 
   const groups = useMemo(() => groupByPlayersMax(filtered), [filtered])
+
+  /** Remount list on filter/preset change → fade + restagger cards. */
+  const listKey = useMemo(
+    () =>
+      [
+        filters.name,
+        filters.players,
+        [...filters.categories].join(','),
+        [...filters.difficulties].join(','),
+        String(filters.includeNonChurch),
+        String(filters.includeLent),
+        String(filters.playersMaxAtLeast),
+        String(filters.playTimeCap),
+        activePreset ?? '',
+      ].join('|'),
+    [filters, activePreset],
+  )
 
   const chipCount = activeFilterCount(filters)
 
@@ -663,28 +716,34 @@ export default function App() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="panel empty">沒有符合條件的遊戲，試試放寬篩選。</div>
+          <div key={listKey} className="panel empty list-swap">
+            沒有符合條件的遊戲，試試放寬篩選。
+          </div>
         ) : (
-          <div className="grouped-list">
-            {groups.map((group) => (
-              <div key={group.playersMax} className="player-group">
-                <h3 className="player-group__header">
-                  <span className="player-group__title">{group.playersMax}人</span>
-                  <span className="player-group__count">{group.games.length} 款</span>
-                </h3>
-                <div className="game-grid">
-                  {group.games.map((game) => (
-                    <GameCard
-                      key={game.name}
-                      game={game}
-                      showLocation={data.settings.showLocation}
-                      showLentTo={data.settings.showLentTo}
-                      onOpen={() => setSelected(game)}
-                    />
-                  ))}
+          <div key={listKey} className="grouped-list list-swap">
+            {(() => {
+              let enterIndex = 0
+              return groups.map((group) => (
+                <div key={group.playersMax} className="player-group">
+                  <StickyGroupHeader playersMax={group.playersMax} count={group.games.length} />
+                  <div className="game-grid">
+                    {group.games.map((game) => {
+                      const i = enterIndex++
+                      return (
+                        <GameCard
+                          key={game.name}
+                          game={game}
+                          showLocation={data.settings.showLocation}
+                          showLentTo={data.settings.showLentTo}
+                          enterIndex={i}
+                          onOpen={() => setSelected(game)}
+                        />
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            })()}
           </div>
         )}
       </section>
