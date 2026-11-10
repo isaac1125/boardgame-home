@@ -5,12 +5,18 @@ import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
 import { youtubeEmbedUrl } from './lib/youtube'
 import './App.css'
 
+type PresetId = 'party-multi' | 'quick'
+
 type Filters = {
   name: string
   players: string
   categories: Set<string>
   difficulties: Set<string>
   availableOnly: boolean
+  /** games with players_max >= this (scenario: 小組多人) */
+  playersMaxAtLeast: number | null
+  /** effective play time (max, else min) <= this; missing times excluded */
+  playTimeCap: number | null
 }
 
 const emptyFilters = (): Filters => ({
@@ -19,13 +25,43 @@ const emptyFilters = (): Filters => ({
   categories: new Set(),
   difficulties: new Set(),
   availableOnly: false,
+  playersMaxAtLeast: null,
+  playTimeCap: null,
 })
+
+const PRESETS: Record<
+  PresetId,
+  { label: string; apply: () => Filters }
+> = {
+  'party-multi': {
+    label: '小組多人派對',
+    apply: () => ({
+      ...emptyFilters(),
+      categories: new Set(['派對']),
+      playersMaxAtLeast: 6,
+    }),
+  },
+  quick: {
+    label: '快速來一局',
+    apply: () => ({
+      ...emptyFilters(),
+      playTimeCap: 30,
+    }),
+  },
+}
 
 function toggleSet(set: Set<string>, value: string): Set<string> {
   const next = new Set(set)
   if (next.has(value)) next.delete(value)
   else next.add(value)
   return next
+}
+
+/** Prefer max; if only min filled use that; both missing → null (exclude under cap). */
+function effectivePlayTime(game: Game): number | null {
+  if (game.playTimeMax != null) return game.playTimeMax
+  if (game.playTimeMin != null) return game.playTimeMin
+  return null
 }
 
 function matchesFilters(game: Game, filters: Filters): boolean {
@@ -35,6 +71,15 @@ function matchesFilters(game: Game, filters: Filters): boolean {
   if (filters.players.trim()) {
     const n = Number(filters.players)
     if (!Number.isFinite(n) || n < game.playersMin || n > game.playersMax) return false
+  }
+
+  if (filters.playersMaxAtLeast != null && game.playersMax < filters.playersMaxAtLeast) {
+    return false
+  }
+
+  if (filters.playTimeCap != null) {
+    const t = effectivePlayTime(game)
+    if (t == null || t > filters.playTimeCap) return false
   }
 
   if (filters.categories.size > 0 && !filters.categories.has(game.category)) return false
@@ -47,6 +92,8 @@ function matchesFilters(game: Game, filters: Filters): boolean {
 function filterSummary(filters: Filters): string {
   const bits: string[] = []
   if (filters.players.trim()) bits.push(`${filters.players} 人`)
+  if (filters.playersMaxAtLeast != null) bits.push(`最多≥${filters.playersMaxAtLeast}`)
+  if (filters.playTimeCap != null) bits.push(`≤${filters.playTimeCap} 分`)
   if (filters.categories.size) bits.push([...filters.categories].join('、'))
   if (filters.difficulties.size) bits.push([...filters.difficulties].join('、'))
   if (filters.availableOnly) bits.push('只看可拿')
@@ -57,8 +104,37 @@ function activeFilterCount(filters: Filters): number {
   return (
     filters.categories.size +
     filters.difficulties.size +
-    (filters.availableOnly ? 1 : 0)
+    (filters.availableOnly ? 1 : 0) +
+    (filters.playersMaxAtLeast != null ? 1 : 0) +
+    (filters.playTimeCap != null ? 1 : 0)
   )
+}
+
+function compareWithinGroup(a: Game, b: Game): number {
+  const aChurch = a.location === '教會' ? 0 : 1
+  const bChurch = b.location === '教會' ? 0 : 1
+  if (aChurch !== bChurch) return aChurch - bChurch
+  return a.name.localeCompare(b.name, 'zh-Hant')
+}
+
+type PlayerGroup = { playersMax: number; games: Game[] }
+
+function groupByPlayersMax(games: Game[]): PlayerGroup[] {
+  const sorted = [...games].sort((a, b) => {
+    if (b.playersMax !== a.playersMax) return b.playersMax - a.playersMax
+    return compareWithinGroup(a, b)
+  })
+
+  const groups: PlayerGroup[] = []
+  for (const game of sorted) {
+    const last = groups[groups.length - 1]
+    if (last && last.playersMax === game.playersMax) {
+      last.games.push(game)
+    } else {
+      groups.push({ playersMax: game.playersMax, games: [game] })
+    }
+  }
+  return groups
 }
 
 function CoverThumb({
@@ -231,6 +307,7 @@ export default function App() {
   const [data, setData] = useState<CatalogData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters)
+  const [activePreset, setActivePreset] = useState<PresetId | null>(null)
   const [selected, setSelected] = useState<Game | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
@@ -262,7 +339,24 @@ export default function App() {
     return data.games.filter((g) => matchesFilters(g, filters))
   }, [data, filters])
 
+  const groups = useMemo(() => groupByPlayersMax(filtered), [filtered])
+
   const chipCount = activeFilterCount(filters)
+
+  function applyPreset(id: PresetId) {
+    if (activePreset === id) {
+      setFilters(emptyFilters())
+      setActivePreset(null)
+      return
+    }
+    setFilters(PRESETS[id].apply())
+    setActivePreset(id)
+  }
+
+  function clearAllFilters() {
+    setFilters(emptyFilters())
+    setActivePreset(null)
+  }
 
   if (error) {
     return (
@@ -316,7 +410,10 @@ export default function App() {
               inputMode="numeric"
               placeholder="4"
               value={filters.players}
-              onChange={(e) => setFilters((f) => ({ ...f, players: e.target.value }))}
+              onChange={(e) => {
+                setActivePreset(null)
+                setFilters((f) => ({ ...f, players: e.target.value }))
+              }}
             />
           </label>
           <label className="field field--grow">
@@ -325,9 +422,31 @@ export default function App() {
               type="search"
               placeholder="關鍵字…"
               value={filters.name}
-              onChange={(e) => setFilters((f) => ({ ...f, name: e.target.value }))}
+              onChange={(e) => {
+                setActivePreset(null)
+                setFilters((f) => ({ ...f, name: e.target.value }))
+              }}
             />
           </label>
+        </div>
+
+        <div className="presets" role="group" aria-label="情境快捷">
+          {(Object.keys(PRESETS) as PresetId[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={`preset-chip ${activePreset === id ? 'is-on' : ''}`}
+              aria-pressed={activePreset === id}
+              onClick={() => applyPreset(id)}
+            >
+              {PRESETS[id].label}
+            </button>
+          ))}
+          {activePreset || chipCount > 0 || filters.players.trim() || filters.name.trim() ? (
+            <button type="button" className="preset-chip preset-chip--clear" onClick={clearAllFilters}>
+              清除
+            </button>
+          ) : null}
         </div>
 
         <button
@@ -356,9 +475,10 @@ export default function App() {
                     key={c}
                     type="button"
                     className={`chip ${filters.categories.has(c) ? 'is-on chip--yellow' : ''}`}
-                    onClick={() =>
+                    onClick={() => {
+                      setActivePreset(null)
                       setFilters((f) => ({ ...f, categories: toggleSet(f.categories, c) }))
-                    }
+                    }}
                   >
                     {c}
                   </button>
@@ -374,9 +494,10 @@ export default function App() {
                     key={d}
                     type="button"
                     className={`chip ${filters.difficulties.has(d) ? 'is-on chip--teal' : ''}`}
-                    onClick={() =>
+                    onClick={() => {
+                      setActivePreset(null)
                       setFilters((f) => ({ ...f, difficulties: toggleSet(f.difficulties, d) }))
-                    }
+                    }}
                   >
                     {d}
                   </button>
@@ -388,7 +509,10 @@ export default function App() {
               <input
                 type="checkbox"
                 checked={filters.availableOnly}
-                onChange={(e) => setFilters((f) => ({ ...f, availableOnly: e.target.checked }))}
+                onChange={(e) => {
+                  setActivePreset(null)
+                  setFilters((f) => ({ ...f, availableOnly: e.target.checked }))
+                }}
               />
               <span>只看可拿（不含已借出）</span>
             </label>
@@ -405,14 +529,24 @@ export default function App() {
         {filtered.length === 0 ? (
           <div className="panel empty">沒有符合條件的遊戲，試試放寬篩選。</div>
         ) : (
-          <div className="game-grid">
-            {filtered.map((game) => (
-              <GameCard
-                key={game.name}
-                game={game}
-                showLocation={data.settings.showLocation}
-                onOpen={() => setSelected(game)}
-              />
+          <div className="grouped-list">
+            {groups.map((group) => (
+              <div key={group.playersMax} className="player-group">
+                <h3 className="player-group__header">
+                  <span className="player-group__title">{group.playersMax}人</span>
+                  <span className="player-group__count">{group.games.length} 款</span>
+                </h3>
+                <div className="game-grid">
+                  {group.games.map((game) => (
+                    <GameCard
+                      key={game.name}
+                      game={game}
+                      showLocation={data.settings.showLocation}
+                      onOpen={() => setSelected(game)}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
