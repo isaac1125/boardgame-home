@@ -259,10 +259,19 @@
   cursor: pointer;
 }
 
+.toggle--compact {
+  margin: 0 0 0.55rem;
+  min-height: 2rem;
+  font-size: 0.82rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+}
+
 .toggle input {
   width: 1.05rem;
   height: 1.05rem;
   accent-color: var(--coral);
+  flex-shrink: 0;
 }
 
 .list-header {

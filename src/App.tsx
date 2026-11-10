@@ -17,6 +17,8 @@ type Filters = {
   playersMaxAtLeast: number | null
   /** effective play time (max, else min) <= this; missing times excluded */
   playTimeCap: number | null
+  /** default off = 教會 only; on = 教會 + 家裡 + blank/other */
+  includeHome: boolean
 }
 
 const emptyFilters = (): Filters => ({
@@ -27,6 +29,7 @@ const emptyFilters = (): Filters => ({
   availableOnly: false,
   playersMaxAtLeast: null,
   playTimeCap: null,
+  includeHome: false,
 })
 
 const PRESETS: Record<
@@ -82,6 +85,8 @@ function matchesFilters(game: Game, filters: Filters): boolean {
     if (t == null || t > filters.playTimeCap) return false
   }
 
+  if (!filters.includeHome && game.location !== '教會') return false
+
   if (filters.categories.size > 0 && !filters.categories.has(game.category)) return false
   if (filters.difficulties.size > 0 && !filters.difficulties.has(game.difficulty)) return false
   if (filters.availableOnly && game.lentTo) return false
@@ -97,6 +102,7 @@ function filterSummary(filters: Filters): string {
   if (filters.categories.size) bits.push([...filters.categories].join('、'))
   if (filters.difficulties.size) bits.push([...filters.difficulties].join('、'))
   if (filters.availableOnly) bits.push('只看可拿')
+  if (filters.includeHome) bits.push('含家裡')
   return bits.length ? bits.join(' · ') : '類別／難度／可拿'
 }
 
@@ -345,11 +351,11 @@ export default function App() {
 
   function applyPreset(id: PresetId) {
     if (activePreset === id) {
-      setFilters(emptyFilters())
+      setFilters((f) => ({ ...emptyFilters(), includeHome: f.includeHome }))
       setActivePreset(null)
       return
     }
-    setFilters(PRESETS[id].apply())
+    setFilters((f) => ({ ...PRESETS[id].apply(), includeHome: f.includeHome }))
     setActivePreset(id)
   }
 
@@ -442,12 +448,21 @@ export default function App() {
               {PRESETS[id].label}
             </button>
           ))}
-          {activePreset || chipCount > 0 || filters.players.trim() || filters.name.trim() ? (
+          {activePreset || chipCount > 0 || filters.players.trim() || filters.name.trim() || filters.includeHome ? (
             <button type="button" className="preset-chip preset-chip--clear" onClick={clearAllFilters}>
               清除
             </button>
           ) : null}
         </div>
+
+        <label className="toggle toggle--compact">
+          <input
+            type="checkbox"
+            checked={filters.includeHome}
+            onChange={(e) => setFilters((f) => ({ ...f, includeHome: e.target.checked }))}
+          />
+          <span>顯示家裡</span>
+        </label>
 
         <button
           type="button"
