@@ -169,6 +169,33 @@ function CoverThumb({
   )
 }
 
+function IconPeople() {
+  return (
+    <svg className="meta-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.5 6c0-2.4 2.2-4 5.5-4s5.5 1.6 5.5 4v1H2.5v-1Z"
+      />
+    </svg>
+  )
+}
+
+function IconClock() {
+  return (
+    <svg className="meta-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM8 3a.75.75 0 0 1 .75.75V8H11a.75.75 0 0 1 0 1.5H8A.75.75 0 0 1 7.25 8V3.75A.75.75 0 0 1 8 3Z"
+      />
+    </svg>
+  )
+}
+
+function formatPlayersRange(game: Game): string {
+  if (game.playersMin === game.playersMax) return `${game.playersMax}`
+  return `${game.playersMin}–${game.playersMax}`
+}
+
 function GameCard({
   game,
   showLocation,
@@ -179,12 +206,6 @@ function GameCard({
   onOpen: () => void
 }) {
   const time = formatPlayTime(game)
-  const metaBits = [
-    formatPlayers(game),
-    time,
-    game.difficulty || null,
-    showLocation && game.location ? game.location : null,
-  ].filter(Boolean)
 
   const statusBits = [
     game.unopened ? '未開封' : null,
@@ -200,10 +221,30 @@ function GameCard({
             <h3>{game.name}</h3>
             <span className="chev">→</span>
           </div>
-          <div className="meta-line">
-            {game.category ? <span className="tag-cat">{game.category}</span> : null}
-            <span className="meta-plain">{metaBits.join(' · ')}</span>
+
+          {(game.category || game.difficulty) && (
+            <div className="tag-row">
+              {game.category ? <span className="tag-cat">{game.category}</span> : null}
+              {game.difficulty ? <span className="tag-diff">{game.difficulty}</span> : null}
+            </div>
+          )}
+
+          <div className="meta-row">
+            <span className="meta-item" title="人數">
+              <IconPeople />
+              <span>{formatPlayersRange(game)}</span>
+            </span>
+            {time ? (
+              <span className="meta-item" title="預計時間">
+                <IconClock />
+                <span>{time}</span>
+              </span>
+            ) : null}
+            {showLocation && game.location ? (
+              <span className="meta-item meta-item--loc">{game.location}</span>
+            ) : null}
           </div>
+
           {statusBits.length > 0 ? (
             <div className="status-line">{statusBits.join(' · ')}</div>
           ) : null}
@@ -455,24 +496,17 @@ export default function App() {
           ) : null}
         </div>
 
-        <label className="toggle toggle--compact">
-          <input
-            type="checkbox"
-            checked={filters.includeHome}
-            onChange={(e) => setFilters((f) => ({ ...f, includeHome: e.target.checked }))}
-          />
-          <span>顯示家裡</span>
-        </label>
-
         <button
           type="button"
-          className={`filter-summary ${filtersOpen ? 'is-open' : ''} ${chipCount ? 'has-active' : ''}`}
+          className={`filter-summary ${filtersOpen ? 'is-open' : ''} ${chipCount || filters.includeHome ? 'has-active' : ''}`}
           aria-expanded={filtersOpen}
           onClick={() => setFiltersOpen((v) => !v)}
         >
           <span className="filter-summary__label">
             篩選
-            {chipCount > 0 ? <em>{chipCount}</em> : null}
+            {chipCount > 0 || filters.includeHome ? (
+              <em>{chipCount + (filters.includeHome ? 1 : 0)}</em>
+            ) : null}
           </span>
           <span className="filter-summary__text">{filterSummary(filters)}</span>
           <span className="filter-summary__chev" aria-hidden>
@@ -520,17 +554,27 @@ export default function App() {
               </div>
             </div>
 
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={filters.availableOnly}
-                onChange={(e) => {
-                  setActivePreset(null)
-                  setFilters((f) => ({ ...f, availableOnly: e.target.checked }))
-                }}
-              />
-              <span>只看可拿（不含已借出）</span>
-            </label>
+            <div className="toggle-stack">
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={filters.includeHome}
+                  onChange={(e) => setFilters((f) => ({ ...f, includeHome: e.target.checked }))}
+                />
+                <span>顯示家裡</span>
+              </label>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={filters.availableOnly}
+                  onChange={(e) => {
+                    setActivePreset(null)
+                    setFilters((f) => ({ ...f, availableOnly: e.target.checked }))
+                  }}
+                />
+                <span>只看可拿（不含已借出）</span>
+              </label>
+            </div>
           </div>
         ) : null}
       </section>
