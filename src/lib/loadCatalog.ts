@@ -45,6 +45,8 @@ function mapGame(row: Record<string, string>): Game | null {
     thumbnailUrl: (row.thumbnail_url ?? '').trim(),
     rulesVideoUrl: (row.rules_video_url ?? '').trim(),
     notes: (row.notes ?? '').trim(),
+    // Soft-fallback: missing `highlight` column → empty string (no break)
+    highlight: (row.highlight ?? '').trim(),
   }
 }
 

@@ -12,6 +12,8 @@ export type Game = {
   thumbnailUrl: string
   rulesVideoUrl: string
   notes: string
+  /** Optional sheet column; empty / missing is fine. e.g. 熱門、新到 */
+  highlight: string
 }
 
 export type ParamRow = {
