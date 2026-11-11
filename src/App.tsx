@@ -82,7 +82,7 @@ type QuizStep = { q: string; options: QuizOption[] }
 
 const QUIZ_STEPS: QuizStep[] = [
   {
-    q: '今晚的氣氛比較像…',
+    q: '這一局的氣氛比較像…',
     options: [
       {
         label: '笑聲要蓋過隔壁桌',
@@ -107,7 +107,7 @@ const QUIZ_STEPS: QuizStep[] = [
     options: [
       { label: '熱個身就好，十分鐘內收', patch: { playTimeCap: 20 } },
       { label: '一杯飲料的時間剛好', patch: { playTimeCap: 45 } },
-      { label: '今晚就沉浸這一款', patch: { playTimeCap: null } },
+      { label: '就沉浸這一款，不趕時間', patch: { playTimeCap: null } },
     ],
   },
   {
@@ -478,9 +478,6 @@ function PlayersDualSlider({
         <span className="range-field__label">人數</span>
         <span className="range-field__value">
           {valueMin === valueMax ? `${valueMin} 人` : `${valueMin}–${valueMax} 人`}
-          {valueMin > bounds.min || valueMax < bounds.max ? (
-            <em className="range-field__hint">遊戲須落在此區間</em>
-          ) : null}
         </span>
       </div>
       <div
@@ -732,12 +729,12 @@ function QuizPanel({
         className="quiz-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="今晚玩什麼"
+        aria-label="玩什麼？測一測"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="quiz-panel__header">
           <div>
-            <p className="quiz-panel__kicker">今晚玩什麼</p>
+            <p className="quiz-panel__kicker">玩什麼？測一測</p>
             <h2>
               {step + 1}/{QUIZ_STEPS.length} · {current.q}
             </h2>
@@ -910,7 +907,7 @@ export default function App() {
     setQuizOpen(false)
     setQuizStep(0)
     setQuizPatches([])
-    setQuizToast('已依今晚氣氛幫你調好篩選')
+    setQuizToast('已依你的選擇調好篩選')
     window.setTimeout(() => {
       listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 60)
@@ -1192,9 +1189,9 @@ export default function App() {
         type="button"
         className="quiz-fab"
         onClick={openQuiz}
-        aria-label="今晚玩什麼"
+        aria-label="玩什麼？測一測"
       >
-        <span className="quiz-fab__main">今晚玩什麼</span>
+        <span className="quiz-fab__main">玩什麼？</span>
         <span className="quiz-fab__sub">測一測</span>
       </button>
 

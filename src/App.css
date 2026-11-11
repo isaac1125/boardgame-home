@@ -168,20 +168,8 @@
 }
 
 .range-field__value {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 0.35rem;
   font-weight: 900;
   font-size: 0.9rem;
-}
-
-.range-field__hint {
-  font-style: normal;
-  font-size: 0.68rem;
-  font-weight: 800;
-  opacity: 0.55;
 }
 
 .dual-range {
