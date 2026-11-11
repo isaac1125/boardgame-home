@@ -410,10 +410,13 @@ function StickyGroupHeader({
   label,
   count,
   tone = 'yellow',
+  hint,
 }: {
   label: string
   count: number
   tone?: 'yellow' | 'coral'
+  /** Small secondary label, e.g.「最多支援」for players_max groups */
+  hint?: string
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [stuck, setStuck] = useState(false)
@@ -435,7 +438,10 @@ function StickyGroupHeader({
       <h3
         className={`player-group__header player-group__header--${tone} ${stuck ? 'is-stuck' : ''}`}
       >
-        <span className="player-group__title">{label}</span>
+        <span className="player-group__heading">
+          <span className="player-group__title">{label}</span>
+          {hint ? <span className="player-group__hint">{hint}</span> : null}
+        </span>
         <span className="player-group__count">{count} 款</span>
       </h3>
     </>
@@ -1264,6 +1270,7 @@ export default function App() {
                     <div key={group.playersMax} className="player-group">
                       <StickyGroupHeader
                         label={`${group.playersMax}人`}
+                        hint="最多支援"
                         count={group.games.length}
                       />
                       <div className="game-grid">
