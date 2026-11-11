@@ -439,8 +439,8 @@ function StickyGroupHeader({
         className={`player-group__header player-group__header--${tone} ${stuck ? 'is-stuck' : ''}`}
       >
         <span className="player-group__heading">
-          <span className="player-group__title">{label}</span>
           {hint ? <span className="player-group__hint">{hint}</span> : null}
+          <span className="player-group__title">{label}</span>
         </span>
         <span className="player-group__count">{count} 款</span>
       </h3>
