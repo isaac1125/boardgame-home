@@ -11,9 +11,8 @@ type PresetId = 'party-multi' | 'quick'
 type Filters = {
   name: string
   /**
-   * Inclusive player-count window. A game matches when its own
-   * players_min..players_max fits inside this window
-   * (game.playersMin >= rangeMin && game.playersMax <= rangeMax).
+   * 「現在大概有多少人」group-size band. A game matches on overlap:
+   * game.playersMin ≤ rangeMax && game.playersMax ≥ rangeMin.
    * Default = full catalog bounds → no narrowing.
    */
   playersRangeMin: number
@@ -158,11 +157,10 @@ function matchesFilters(game: Game, filters: Filters, bounds: CatalogBounds): bo
   if (q && !game.name.toLowerCase().includes(q)) return false
 
   if (playersRangeActive(filters, bounds)) {
-    // Game's printed player range must fit inside the selected window.
-    // (Not mere overlap — that barely narrowed the list when max was dragged down.)
+    // Overlap: game can seat someone in the present group-size band.
     if (
-      game.playersMin < filters.playersRangeMin ||
-      game.playersMax > filters.playersRangeMax
+      game.playersMin > filters.playersRangeMax ||
+      game.playersMax < filters.playersRangeMin
     ) {
       return false
     }
