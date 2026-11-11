@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { CatalogData, Game } from './types'
 import { formatPlayTime, formatPlayers } from './lib/format'
 import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
@@ -455,21 +455,85 @@ function PlayersDualSlider({
   valueMax: number
   onChange: (min: number, max: number) => void
 }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<'min' | 'max' | null>(null)
+  const latestRef = useRef({ valueMin, valueMax, bounds })
   const [activeThumb, setActiveThumb] = useState<'min' | 'max' | null>(null)
+
+  useEffect(() => {
+    latestRef.current = { valueMin, valueMax, bounds }
+  }, [valueMin, valueMax, bounds])
+
   const span = Math.max(1, bounds.max - bounds.min)
   const leftPct = ((valueMin - bounds.min) / span) * 100
   const rightPct = ((valueMax - bounds.min) / span) * 100
-  // Keep the last-dragged thumb on top so thumbs stay reachable when close.
-  const minOnTop = activeThumb === 'min' || (activeThumb == null && leftPct > 50)
 
-  function setMin(raw: number) {
-    const next = Math.min(Math.max(raw, bounds.min), valueMax)
-    onChange(next, valueMax)
+  function valueFromClientX(clientX: number): number {
+    const track = trackRef.current
+    if (!track) return valueMin
+    const rect = track.getBoundingClientRect()
+    if (rect.width <= 0) return valueMin
+    const pct = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+    return Math.round(bounds.min + pct * span)
   }
 
-  function setMax(raw: number) {
-    const next = Math.max(Math.min(raw, bounds.max), valueMin)
-    onChange(valueMin, next)
+  function applyDrag(thumb: 'min' | 'max', raw: number) {
+    const { valueMin: lo, valueMax: hi, bounds: b } = latestRef.current
+    if (thumb === 'min') {
+      const next = Math.min(Math.max(raw, b.min), hi)
+      onChange(next, hi)
+    } else {
+      const next = Math.max(Math.min(raw, b.max), lo)
+      onChange(lo, next)
+    }
+  }
+
+  function pickThumb(clientX: number): 'min' | 'max' {
+    const v = valueFromClientX(clientX)
+    const dMin = Math.abs(v - valueMin)
+    const dMax = Math.abs(v - valueMax)
+    if (dMin === dMax) {
+      // Prefer the thumb toward the outside when tied (easier to unstick at ends).
+      return v <= (valueMin + valueMax) / 2 ? 'min' : 'max'
+    }
+    return dMin < dMax ? 'min' : 'max'
+  }
+
+  function onThumbPointerDown(thumb: 'min' | 'max', e: ReactPointerEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragRef.current = thumb
+    setActiveThumb(thumb)
+    e.currentTarget.setPointerCapture(e.pointerId)
+    applyDrag(thumb, valueFromClientX(e.clientX))
+  }
+
+  function onTrackPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    // Ignore presses that started on a thumb (those stopPropagation already).
+    const t = e.target as HTMLElement
+    if (t.closest('.dual-range__thumb')) return
+    e.preventDefault()
+    const thumb = pickThumb(e.clientX)
+    dragRef.current = thumb
+    setActiveThumb(thumb)
+    e.currentTarget.setPointerCapture(e.pointerId)
+    applyDrag(thumb, valueFromClientX(e.clientX))
+  }
+
+  function onPointerMove(e: ReactPointerEvent) {
+    const thumb = dragRef.current
+    if (!thumb) return
+    applyDrag(thumb, valueFromClientX(e.clientX))
+  }
+
+  function onPointerUp(e: ReactPointerEvent) {
+    if (!dragRef.current) return
+    dragRef.current = null
+    try {
+      ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+    } catch {
+      // already released
+    }
   }
 
   return (
@@ -481,6 +545,7 @@ function PlayersDualSlider({
         </span>
       </div>
       <div
+        ref={trackRef}
         className="dual-range"
         style={
           {
@@ -488,30 +553,72 @@ function PlayersDualSlider({
             '--range-right': `${rightPct}%`,
           } as CSSProperties
         }
+        onPointerDown={onTrackPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
         <div className="dual-range__track" aria-hidden="true" />
         <div className="dual-range__fill" aria-hidden="true" />
-        <input
-          type="range"
-          className={`dual-range__input dual-range__input--min ${minOnTop ? 'is-top' : ''}`}
-          min={bounds.min}
-          max={bounds.max}
-          step={1}
-          value={valueMin}
+        <div className="dual-range__hit" aria-hidden="true" />
+
+        <button
+          type="button"
+          className={`dual-range__thumb dual-range__thumb--min ${activeThumb === 'min' ? 'is-active' : ''}`}
+          style={{ left: `${leftPct}%` }}
           aria-label="最少人數"
-          onPointerDown={() => setActiveThumb('min')}
-          onChange={(e) => setMin(Number(e.target.value))}
+          aria-valuemin={bounds.min}
+          aria-valuemax={valueMax}
+          aria-valuenow={valueMin}
+          role="slider"
+          onPointerDown={(e) => onThumbPointerDown('min', e)}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+              e.preventDefault()
+              applyDrag('min', valueMin - 1)
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+              e.preventDefault()
+              applyDrag('min', valueMin + 1)
+            } else if (e.key === 'Home') {
+              e.preventDefault()
+              applyDrag('min', bounds.min)
+            } else if (e.key === 'End') {
+              e.preventDefault()
+              applyDrag('min', valueMax)
+            }
+          }}
         />
-        <input
-          type="range"
-          className={`dual-range__input dual-range__input--max ${minOnTop ? '' : 'is-top'}`}
-          min={bounds.min}
-          max={bounds.max}
-          step={1}
-          value={valueMax}
+        <button
+          type="button"
+          className={`dual-range__thumb dual-range__thumb--max ${activeThumb === 'max' ? 'is-active' : ''}`}
+          style={{ left: `${rightPct}%` }}
           aria-label="最多人數"
-          onPointerDown={() => setActiveThumb('max')}
-          onChange={(e) => setMax(Number(e.target.value))}
+          aria-valuemin={valueMin}
+          aria-valuemax={bounds.max}
+          aria-valuenow={valueMax}
+          role="slider"
+          onPointerDown={(e) => onThumbPointerDown('max', e)}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+              e.preventDefault()
+              applyDrag('max', valueMax - 1)
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+              e.preventDefault()
+              applyDrag('max', valueMax + 1)
+            } else if (e.key === 'Home') {
+              e.preventDefault()
+              applyDrag('max', valueMin)
+            } else if (e.key === 'End') {
+              e.preventDefault()
+              applyDrag('max', bounds.max)
+            }
+          }}
         />
       </div>
       <div className="dual-range__ends" aria-hidden="true">
@@ -944,52 +1051,52 @@ export default function App() {
 
   return (
     <div className="page">
-      <header className="topbar">
-        <div className="brand">桌遊抵家</div>
-        <div className="topbar-tools">
-          <div className={`search-collapse ${searchOpen ? 'is-open' : ''} ${hasSearch ? 'has-query' : ''}`}>
-            {searchOpen ? (
-              <label className="search-collapse__field">
-                <span className="visually-hidden">搜尋名稱</span>
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  placeholder="搜尋遊戲…"
-                  value={filters.name}
-                  onChange={(e) => {
-                    setActivePreset(null)
-                    setFilters((f) => ({ ...f, name: e.target.value }))
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      if (!filters.name) setSearchOpen(false)
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  className="search-collapse__close"
-                  aria-label="收合搜尋"
-                  onClick={() => setSearchOpen(false)}
-                >
-                  ×
-                </button>
-              </label>
-            ) : (
-              <button
-                type="button"
-                className="search-collapse__btn"
-                aria-label={hasSearch ? `搜尋（已輸入 ${filters.name}）` : '開啟搜尋'}
-                aria-expanded={false}
-                onClick={() => setSearchOpen(true)}
-              >
-                <IconSearch />
-                {hasSearch ? <span className="search-collapse__dot" aria-hidden /> : null}
-              </button>
-            )}
+      <header className={`topbar ${searchOpen ? 'topbar--search-open' : ''}`}>
+        <div className="topbar__row">
+          <div className="brand">桌遊抵家</div>
+          <div className="topbar-tools">
+            <button
+              type="button"
+              className={`search-collapse__btn ${hasSearch ? 'has-query' : ''}`}
+              aria-label={hasSearch ? `搜尋（已輸入 ${filters.name}）` : '開啟搜尋'}
+              aria-expanded={searchOpen}
+              aria-controls="catalog-search-panel"
+              onClick={() => setSearchOpen((v) => !v)}
+            >
+              <IconSearch />
+              {hasSearch ? <span className="search-collapse__dot" aria-hidden /> : null}
+            </button>
+            <div className="topbar-right">Boardgame Home</div>
           </div>
-          <div className="topbar-right">Boardgame Home</div>
         </div>
+        {searchOpen ? (
+          <div className="search-panel" id="catalog-search-panel" role="search">
+            <label className="search-panel__field">
+              <span className="visually-hidden">搜尋名稱</span>
+              <input
+                ref={searchInputRef}
+                type="search"
+                placeholder="搜尋遊戲…"
+                value={filters.name}
+                onChange={(e) => {
+                  setActivePreset(null)
+                  setFilters((f) => ({ ...f, name: e.target.value }))
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setSearchOpen(false)
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="search-panel__close"
+              aria-label="收合搜尋"
+              onClick={() => setSearchOpen(false)}
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
       </header>
 
       {data.source === 'sample' ? (

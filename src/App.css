@@ -6,25 +6,35 @@
 
 .topbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.55rem;
   padding-bottom: 0.55rem;
   margin-bottom: 0.75rem;
   border-bottom: 3px solid var(--ink);
+}
+
+.topbar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .brand {
   font-size: clamp(1.35rem, 5vw, 1.85rem);
   font-weight: 900;
   letter-spacing: -0.02em;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .topbar-tools {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .topbar-right {
@@ -45,13 +55,6 @@
   border: 0;
 }
 
-.search-collapse {
-  position: relative;
-  display: flex;
-  justify-content: flex-end;
-  min-width: 0;
-}
-
 .search-collapse__btn {
   position: relative;
   width: 2.6rem;
@@ -66,7 +69,8 @@
   flex-shrink: 0;
 }
 
-.search-collapse.has-query .search-collapse__btn {
+.search-collapse__btn.has-query,
+.search-collapse__btn[aria-expanded='true'] {
   background: #fff8d6;
 }
 
@@ -86,42 +90,64 @@
   height: 1.15rem;
 }
 
-.search-collapse__field {
+.search-panel {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  min-width: min(16rem, 68vw);
+  gap: 0.4rem;
+  width: 100%;
 }
 
-.search-collapse__field input {
+.search-panel__field {
   flex: 1;
   min-width: 0;
+}
+
+.search-panel__field input {
+  width: 100%;
   font: inherit;
   font-weight: 700;
   font-size: 16px;
   border: 3px solid var(--ink);
   border-radius: 10px;
-  padding: 0.45rem 0.6rem;
+  padding: 0.55rem 0.7rem;
   background: #fff;
   box-shadow: 3px 3px 0 var(--ink);
+  box-sizing: border-box;
 }
 
-.search-collapse__field input:focus {
+.search-panel__field input:focus {
   outline: 3px solid var(--teal);
   outline-offset: 1px;
 }
 
-.search-collapse__close {
-  width: 2.4rem;
-  height: 2.4rem;
+.search-panel__close {
+  width: 2.6rem;
+  height: 2.6rem;
   border: 3px solid var(--ink);
   border-radius: 10px;
   background: var(--yellow);
-  box-shadow: 2px 2px 0 var(--ink);
-  font-size: 1.2rem;
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: 1.25rem;
   font-weight: 900;
   line-height: 1;
   flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .search-panel {
+    animation: search-panel-in 0.18s ease both;
+  }
+
+  @keyframes search-panel-in {
+    from {
+      opacity: 0.35;
+      translate: 0 -6px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
 }
 
 @media (max-width: 420px) {
@@ -174,23 +200,35 @@
 
 .dual-range {
   position: relative;
-  height: 2.4rem;
-  display: grid;
+  height: 2.6rem;
+  display: flex;
   align-items: center;
   --range-left: 0%;
   --range-right: 100%;
   touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.dual-range__track,
+.dual-range__fill,
+.dual-range__hit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
 }
 
 .dual-range__track,
 .dual-range__fill {
-  position: absolute;
-  left: 0;
-  right: 0;
   height: 0.55rem;
   border: 2.5px solid var(--ink);
   border-radius: 999px;
-  pointer-events: none;
+}
+
+.dual-range__hit {
+  inset: 0;
+  /* Expand hit area for track taps without covering thumbs (thumbs are higher z). */
 }
 
 .dual-range__track {
@@ -205,70 +243,42 @@
   box-shadow: 2px 2px 0 var(--ink);
 }
 
-.dual-range__input {
+.dual-range__thumb {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  top: 50%;
+  width: 1.65rem;
+  height: 1.65rem;
   margin: 0;
-  background: transparent;
-  appearance: none;
-  -webkit-appearance: none;
-  z-index: 2;
+  padding: 0;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+  z-index: 3;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.dual-range__input.is-top {
+/* Min sits above max when stacked so the left thumb is never trapped. */
+.dual-range__thumb--min {
   z-index: 5;
 }
 
-.dual-range__input::-webkit-slider-runnable-track {
-  height: 0.55rem;
-  background: transparent;
-  border: none;
-}
-
-.dual-range__input::-moz-range-track {
-  height: 0.55rem;
-  background: transparent;
-  border: none;
-}
-
-.dual-range__input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.55rem;
-  height: 1.55rem;
-  margin-top: calc((0.55rem - 1.55rem) / 2);
-  border: 3px solid var(--ink);
-  border-radius: 6px;
-  background: #fff;
-  box-shadow: 2px 2px 0 var(--ink);
-  cursor: grab;
-  touch-action: none;
-  position: relative;
-}
-
-.dual-range__input::-moz-range-thumb {
-  width: 1.55rem;
-  height: 1.55rem;
-  border: 3px solid var(--ink);
-  border-radius: 6px;
-  background: #fff;
-  box-shadow: 2px 2px 0 var(--ink);
-  cursor: grab;
-  touch-action: none;
-}
-
-.dual-range__input--min {
-  z-index: 3;
-}
-
-.dual-range__input--max {
+.dual-range__thumb--max {
   z-index: 4;
 }
 
-.dual-range__input--min.is-top,
-.dual-range__input--max.is-top {
+.dual-range__thumb.is-active {
   z-index: 6;
+  background: var(--yellow);
+  cursor: grabbing;
+}
+
+.dual-range__thumb:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
 }
 
 .dual-range__ends {
