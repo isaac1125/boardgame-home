@@ -10,7 +10,12 @@ type PresetId = 'party-multi' | 'quick'
 
 type Filters = {
   name: string
-  /** Inclusive player-count range; games must overlap this range. */
+  /**
+   * Inclusive player-count window. A game matches when its own
+   * players_min..players_max fits inside this window
+   * (game.playersMin >= rangeMin && game.playersMax <= rangeMax).
+   * Default = full catalog bounds → no narrowing.
+   */
   playersRangeMin: number
   playersRangeMax: number
   categories: Set<string>
@@ -117,10 +122,10 @@ const QUIZ_STEPS: QuizStep[] = [
     q: '桌上大概會坐幾個人？',
     options: [
       { label: '兩三人密談就好', patch: { playersRange: [1, 4] } },
-      { label: '小組剛好一桌', patch: { playersRange: [3, 6] } },
+      { label: '小組剛好一桌', patch: { playersRange: [2, 6] } },
       {
         label: '越多人越熱鬧',
-        patch: { playersRange: [6, 99], playersMaxAtLeast: 6 },
+        patch: { playersRange: [5, 99], playersMaxAtLeast: 5 },
       },
     ],
   },
@@ -153,8 +158,12 @@ function matchesFilters(game: Game, filters: Filters, bounds: CatalogBounds): bo
   if (q && !game.name.toLowerCase().includes(q)) return false
 
   if (playersRangeActive(filters, bounds)) {
-    // Overlap: game can seat someone in the chosen range
-    if (game.playersMax < filters.playersRangeMin || game.playersMin > filters.playersRangeMax) {
+    // Game's printed player range must fit inside the selected window.
+    // (Not mere overlap — that barely narrowed the list when max was dragged down.)
+    if (
+      game.playersMin < filters.playersRangeMin ||
+      game.playersMax > filters.playersRangeMax
+    ) {
       return false
     }
   }
@@ -446,17 +455,20 @@ function PlayersDualSlider({
   valueMax: number
   onChange: (min: number, max: number) => void
 }) {
+  const [activeThumb, setActiveThumb] = useState<'min' | 'max' | null>(null)
   const span = Math.max(1, bounds.max - bounds.min)
   const leftPct = ((valueMin - bounds.min) / span) * 100
   const rightPct = ((valueMax - bounds.min) / span) * 100
+  // Keep the last-dragged thumb on top so thumbs stay reachable when close.
+  const minOnTop = activeThumb === 'min' || (activeThumb == null && leftPct > 50)
 
   function setMin(raw: number) {
-    const next = Math.min(raw, valueMax)
+    const next = Math.min(Math.max(raw, bounds.min), valueMax)
     onChange(next, valueMax)
   }
 
   function setMax(raw: number) {
-    const next = Math.max(raw, valueMin)
+    const next = Math.max(Math.min(raw, bounds.max), valueMin)
     onChange(valueMin, next)
   }
 
@@ -466,6 +478,9 @@ function PlayersDualSlider({
         <span className="range-field__label">人數</span>
         <span className="range-field__value">
           {valueMin === valueMax ? `${valueMin} 人` : `${valueMin}–${valueMax} 人`}
+          {valueMin > bounds.min || valueMax < bounds.max ? (
+            <em className="range-field__hint">遊戲須落在此區間</em>
+          ) : null}
         </span>
       </div>
       <div
@@ -481,22 +496,24 @@ function PlayersDualSlider({
         <div className="dual-range__fill" aria-hidden="true" />
         <input
           type="range"
-          className="dual-range__input dual-range__input--min"
+          className={`dual-range__input dual-range__input--min ${minOnTop ? 'is-top' : ''}`}
           min={bounds.min}
           max={bounds.max}
           step={1}
           value={valueMin}
           aria-label="最少人數"
+          onPointerDown={() => setActiveThumb('min')}
           onChange={(e) => setMin(Number(e.target.value))}
         />
         <input
           type="range"
-          className="dual-range__input dual-range__input--max"
+          className={`dual-range__input dual-range__input--max ${minOnTop ? '' : 'is-top'}`}
           min={bounds.min}
           max={bounds.max}
           step={1}
           value={valueMax}
           aria-label="最多人數"
+          onPointerDown={() => setActiveThumb('max')}
           onChange={(e) => setMax(Number(e.target.value))}
         />
       </div>

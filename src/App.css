@@ -168,17 +168,30 @@
 }
 
 .range-field__value {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.35rem;
   font-weight: 900;
   font-size: 0.9rem;
 }
 
+.range-field__hint {
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 800;
+  opacity: 0.55;
+}
+
 .dual-range {
   position: relative;
-  height: 2rem;
+  height: 2.4rem;
   display: grid;
   align-items: center;
   --range-left: 0%;
   --range-right: 100%;
+  touch-action: none;
 }
 
 .dual-range__track,
@@ -210,9 +223,13 @@
   width: 100%;
   margin: 0;
   background: transparent;
-  pointer-events: none;
   appearance: none;
   -webkit-appearance: none;
+  z-index: 2;
+}
+
+.dual-range__input.is-top {
+  z-index: 5;
 }
 
 .dual-range__input::-webkit-slider-runnable-track {
@@ -230,22 +247,21 @@
 .dual-range__input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  pointer-events: auto;
-  width: 1.35rem;
-  height: 1.35rem;
-  margin-top: calc((0.55rem - 1.35rem) / 2);
+  width: 1.55rem;
+  height: 1.55rem;
+  margin-top: calc((0.55rem - 1.55rem) / 2);
   border: 3px solid var(--ink);
   border-radius: 6px;
   background: #fff;
   box-shadow: 2px 2px 0 var(--ink);
   cursor: grab;
   touch-action: none;
+  position: relative;
 }
 
 .dual-range__input::-moz-range-thumb {
-  pointer-events: auto;
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.55rem;
+  height: 1.55rem;
   border: 3px solid var(--ink);
   border-radius: 6px;
   background: #fff;
@@ -260,6 +276,11 @@
 
 .dual-range__input--max {
   z-index: 4;
+}
+
+.dual-range__input--min.is-top,
+.dual-range__input--max.is-top {
+  z-index: 6;
 }
 
 .dual-range__ends {
