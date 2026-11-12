@@ -691,8 +691,8 @@
   min-width: 4.5rem;
   max-width: 5.2rem;
   max-height: inherit;
-  /* Push「已借出」clear of double/inset top frame; keep stamp box fixed */
-  padding: 0.58rem 0.4rem 0.1rem;
+  /* Top clear for「已借出」; bottom pad so lent_to is not flush to frame */
+  padding: 0.5rem 0.4rem 0.3rem;
   text-align: center;
   color: var(--wax);
   /* Uneven ink wash behind type */
@@ -756,8 +756,8 @@
   font-weight: 700;
   /* Slightly tighter tracking so glyphs sit clear of the side/top frame */
   letter-spacing: 0.08em;
-  line-height: 1.25;
-  padding-top: 0.06rem;
+  line-height: 1.2;
+  padding-top: 0.02rem;
   text-shadow: 0 0 0.4px rgba(142, 43, 43, 0.35);
 }
 
@@ -768,14 +768,15 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  margin: 0.06rem auto 0;
-  padding: 0.02rem 0.05rem 0;
+  /* Nudge borrower name up toward「已借出」for balanced pair */
+  margin: 0.02rem auto 0;
+  padding: 0 0.05rem;
   /* CJK-safe face — Special Elite lacks Han glyphs */
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  line-height: 1.35;
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
