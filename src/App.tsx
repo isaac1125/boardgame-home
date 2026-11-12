@@ -1096,11 +1096,11 @@ export default function App() {
         {searchOpen ? (
           <div className="search-panel" id="catalog-search-panel" role="search">
             <label className="search-panel__field">
-              <span className="visually-hidden">搜尋名稱</span>
+              <span className="visually-hidden">搜尋名稱或類別</span>
               <input
                 ref={searchInputRef}
                 type="search"
-                placeholder="搜尋遊戲…"
+                placeholder="搜尋名稱／類別…"
                 value={filters.name}
                 onChange={(e) => {
                   setActivePreset(null)
