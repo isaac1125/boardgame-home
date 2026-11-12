@@ -898,29 +898,6 @@
   background: var(--ink);
 }
 
-/* Own line under tags — keeps「最推薦人數」clear of time/location mash */
-.card-best {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.28rem 0.4rem;
-  margin: 0.05rem 0 0.12rem;
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.25;
-  color: #444;
-}
-
-.card-best__label {
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
-  color: #777;
-}
-
-.card-best__value {
-  color: #333;
-}
-
 .meta-row {
   display: flex;
   flex-wrap: wrap;
@@ -928,7 +905,6 @@
   justify-content: space-between;
   gap: 0.35rem 0.75rem;
   margin-top: auto;
-  padding-top: 0.12rem;
 }
 
 .meta-row__main {
@@ -947,6 +923,20 @@
   font-weight: 700;
   color: #333;
   line-height: 1.2;
+}
+
+/*「最推薦 4」tucked with the people count, not between time and 教會 */
+.meta-item--players {
+  gap: 0.28rem;
+  flex-wrap: wrap;
+}
+
+.meta-best {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #666;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .meta-item--loc {

@@ -713,18 +713,16 @@ function GameCard({
             </div>
           ) : null}
 
-          {bestLabel ? (
-            <div className="card-best" title="最推薦人數">
-              <span className="card-best__label">最推薦人數</span>
-              <span className="card-best__value">{bestLabel}</span>
-            </div>
-          ) : null}
-
           <div className="meta-row">
             <div className="meta-row__main">
-              <span className="meta-item" title="人數">
+              <span className="meta-item meta-item--players" title="人數">
                 <IconPeople />
                 <span>{formatPlayersRange(game)}</span>
+                {bestLabel ? (
+                  <span className="meta-best" title="最推薦人數">
+                    最推薦 {bestLabel}
+                  </span>
+                ) : null}
               </span>
               {time ? (
                 <span className="meta-item" title="預計時間">
