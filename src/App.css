@@ -672,71 +672,107 @@
 
 /*
  * Lent stamp — Baker St BBQ dossier rubber-ink mark:
- * upright in empty bottom-right; wax red, typewriter, multiply.
+ * upright bottom-right; wax red, double border, wear, multiply, Special Elite.
  */
 .lent-seal {
   position: absolute;
-  right: 0.35rem;
-  bottom: 0.28rem;
+  right: 0.3rem;
+  /* Further down for clearance under difficulty + readable lent_to */
+  bottom: 0.04rem;
   z-index: 5;
   transform: none;
-  /* Stay under difficulty meter (~15px+ gap) — compact, no card stretch */
-  max-height: 2.4rem;
+  max-height: 2.45rem;
 }
 
 .lent-seal__face {
+  position: relative;
   display: block;
   box-sizing: border-box;
-  min-width: 4.4rem;
-  max-width: 5.1rem;
+  min-width: 4.5rem;
+  max-width: 5.2rem;
   max-height: inherit;
-  padding: 0.14rem 0.38rem 0.22rem;
+  padding: 0.18rem 0.4rem 0.2rem;
   text-align: center;
   color: var(--wax);
-  background: transparent;
+  /* Uneven ink wash behind type */
+  background:
+    radial-gradient(ellipse 70% 55% at 28% 35%, rgba(142, 43, 43, 0.14), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 78% 68%, rgba(142, 43, 43, 0.1), transparent 55%),
+    transparent;
+  /* Double-border rubber mark */
   border: 2.5px solid var(--wax);
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px var(--wax);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 0 0 1.25px var(--wax),
+    inset 0 0 0 2.75px rgba(142, 43, 43, 0.18);
   font-family: var(--stamp-type);
-  line-height: 1.15;
-  opacity: 0.9;
+  line-height: 1.12;
+  opacity: 0.92;
   mix-blend-mode: multiply;
-  /* Soft corner wear only — do not fade the borrower name */
-  -webkit-mask-image: radial-gradient(
-    circle at 50% 42%,
-    #000 70%,
-    #000 92%,
-    rgba(0, 0, 0, 0.85) 100%
-  );
-  mask-image: radial-gradient(
-    circle at 50% 42%,
-    #000 70%,
-    #000 92%,
-    rgba(0, 0, 0, 0.85) 100%
-  );
+  filter: contrast(1.08) saturate(1.05);
+  /* Worn corners / blotchy press — center stays dark enough for lent_to */
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 90% 82% at 38% 40%,
+      #000 48%,
+      rgba(0, 0, 0, 0.88) 68%,
+      rgba(0, 0, 0, 0.55) 86%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 90% 82% at 38% 40%,
+      #000 48%,
+      rgba(0, 0, 0, 0.88) 68%,
+      rgba(0, 0, 0, 0.55) 86%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+}
+
+/* Speckle / broken-edge ink grit over the frame */
+.lent-seal__face::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 8% 22%, transparent 0 0.9px, rgba(142, 43, 43, 0.55) 1.1px 1.6px, transparent 1.8px),
+    radial-gradient(circle at 92% 18%, transparent 0 1px, rgba(142, 43, 43, 0.4) 1.2px 1.8px, transparent 2px),
+    radial-gradient(circle at 14% 84%, transparent 0 0.8px, rgba(142, 43, 43, 0.5) 1px 1.5px, transparent 1.7px),
+    radial-gradient(circle at 86% 78%, transparent 0 1.1px, rgba(142, 43, 43, 0.45) 1.3px 1.9px, transparent 2.1px),
+    radial-gradient(circle at 48% 6%, transparent 0 1.2px, rgba(142, 43, 43, 0.35) 1.4px 2px, transparent 2.2px),
+    radial-gradient(circle at 62% 94%, transparent 0 0.9px, rgba(142, 43, 43, 0.4) 1.1px 1.7px, transparent 1.9px);
+  mix-blend-mode: multiply;
+  opacity: 0.85;
 }
 
 .lent-seal__text {
+  position: relative;
+  z-index: 1;
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 1.08;
+  letter-spacing: 0.16em;
+  line-height: 1.1;
+  text-shadow: 0 0 0.4px rgba(142, 43, 43, 0.35);
 }
 
 .lent-seal__who {
+  position: relative;
+  z-index: 1;
   display: block;
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  margin: 0.02rem auto 0;
-  padding: 0.02rem 0.05rem 0.02rem;
-  /* CJK-safe face — Special Elite lacks Han glyphs; overflow+tight lh clips them */
+  margin: 0.06rem auto 0;
+  padding: 0.02rem 0.05rem 0.04rem;
+  /* CJK-safe face — Special Elite lacks Han glyphs */
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  line-height: 1.4;
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
