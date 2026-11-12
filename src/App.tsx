@@ -4,6 +4,7 @@ import type { CatalogData, Game } from './types'
 import {
   bestPlayersOverlaps,
   formatBestPlayers,
+  formatBestPlayersDetail,
   formatPlayTime,
   formatPlayers,
 } from './lib/format'
@@ -712,18 +713,19 @@ function GameCard({
             </div>
           ) : null}
 
+          {bestLabel ? (
+            <div className="card-best" title="最推薦人數">
+              <span className="card-best__label">最推薦人數</span>
+              <span className="card-best__value">{bestLabel}</span>
+            </div>
+          ) : null}
+
           <div className="meta-row">
             <div className="meta-row__main">
               <span className="meta-item" title="人數">
                 <IconPeople />
                 <span>{formatPlayersRange(game)}</span>
               </span>
-              {bestLabel ? (
-                <span className="meta-item meta-item--best" title="適合人數">
-                  <span className="meta-best-label">適合</span>
-                  <span>{bestLabel}</span>
-                </span>
-              ) : null}
               {time ? (
                 <span className="meta-item" title="預計時間">
                   <IconClock />
@@ -799,8 +801,8 @@ function DetailPanel({
             <div className="value">{formatPlayers(game)}</div>
           </div>
           <div>
-            <div className="label">適合人數</div>
-            <div className="value">{formatBestPlayers(game.bestPlayers) ?? '—'}</div>
+            <div className="label">最推薦人數</div>
+            <div className="value">{formatBestPlayersDetail(game.bestPlayers) ?? '—'}</div>
           </div>
           <div>
             <div className="label">預計時間</div>
@@ -981,10 +983,15 @@ export default function App() {
 
   const sliderActive = playersRangeActive(filters, bounds)
 
-  const highlighted = useMemo(
-    () => [...filtered.filter((g) => g.highlight)].sort(compareHighlightFirst),
-    [filtered],
-  )
+  const highlighted = useMemo(() => {
+    const list = filtered.filter((g) => g.highlight)
+    if (sliderActive) {
+      return [...list].sort((a, b) =>
+        compareBestFitThenChurch(a, b, filters.playersRangeMin, filters.playersRangeMax),
+      )
+    }
+    return [...list].sort(compareHighlightFirst)
+  }, [filtered, sliderActive, filters.playersRangeMin, filters.playersRangeMax])
 
   const restGames = useMemo(() => {
     if (highlighted.length === 0) return filtered
@@ -992,7 +999,7 @@ export default function App() {
     return filtered.filter((g) => !names.has(g.name))
   }, [filtered, highlighted])
 
-  /** Full-range slider → keep players_max sections. Narrowed → flat + 適合人數 boost. */
+  /** Full-range slider → keep players_max sections. Narrowed → flat + 最推薦人數 boost. */
   const groups = useMemo(
     () => (sliderActive ? [] : groupByPlayersMax(restGames)),
     [restGames, sliderActive],
@@ -1350,7 +1357,7 @@ export default function App() {
                       {bestFitGames.length > 0 ? (
                         <div className="player-group player-group--best">
                           <StickyGroupHeader
-                            label="適合人數"
+                            label="最推薦人數"
                             count={bestFitGames.length}
                             tone="yellow"
                           />

@@ -887,20 +887,44 @@
   background: var(--ink);
 }
 
+/* Own line under tags — keeps「最推薦人數」clear of time/location mash */
+.card-best {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.28rem 0.4rem;
+  margin: 0.05rem 0 0.12rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #444;
+}
+
+.card-best__label {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: #777;
+}
+
+.card-best__value {
+  color: #333;
+}
+
 .meta-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.3rem 0.55rem;
+  gap: 0.35rem 0.75rem;
   margin-top: auto;
+  padding-top: 0.12rem;
 }
 
 .meta-row__main {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem 0.7rem;
+  gap: 0.35rem 0.85rem;
   min-width: 0;
 }
 
@@ -914,22 +938,9 @@
   line-height: 1.2;
 }
 
-.meta-item--best {
-  gap: 0.18rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: #555;
-}
-
-.meta-best-label {
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #777;
-}
-
 .meta-item--loc {
   margin-left: auto;
+  flex-shrink: 0;
   color: #555;
   font-size: 0.72rem;
   font-weight: 800;

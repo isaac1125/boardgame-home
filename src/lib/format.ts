@@ -21,11 +21,22 @@ export function parseBool(value: string): boolean {
   return v === 'TRUE' || v === '1' || v === 'YES' || v === 'Y'
 }
 
+/** Normalize digits / light sheet noise before int parse. */
+function normalizeNumberToken(raw: string): string {
+  return raw
+    .trim()
+    // fullwidth ０-９ → ASCII
+    .replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30))
+    // strip trailing 人 / 位 and spaces
+    .replace(/[人位]\s*$/u, '')
+    .trim()
+}
+
 export function parseOptionalInt(value: string): number | null {
-  const t = value.trim()
+  const t = normalizeNumberToken(value)
   if (!t) return null
   const n = Number(t)
-  return Number.isFinite(n) ? n : null
+  return Number.isFinite(n) ? Math.trunc(n) : null
 }
 
 /**
@@ -43,7 +54,7 @@ export function parseCategories(raw: string): string[] {
 
 /**
  * Optional `best_players`:
- * - single `4`
+ * - single `4` (also `４`, `4人`, `4.0`)
  * - range `3-5` / `3–5`
  * - list `6,8,10` (also ， 、)
  * Soft-fallback: blank / unparseable → null.
@@ -66,7 +77,11 @@ export function parseBestPlayers(raw: string): BestPlayers | null {
     return { mode: 'list', values }
   }
 
-  const range = t.match(/^(\d+)\s*[-–—~～至到]\s*(\d+)$/)
+  // Normalize fullwidth digits before range detect so `３–５` works
+  const normalized = t.replace(/[０-９]/g, (ch) =>
+    String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30),
+  )
+  const range = normalized.match(/^(\d+)\s*[-–—~～至到]\s*(\d+)\s*[人位]?\s*$/u)
   if (range) {
     let min = Number(range[1])
     let max = Number(range[2])
@@ -76,26 +91,38 @@ export function parseBestPlayers(raw: string): BestPlayers | null {
     return { mode: 'range', min, max }
   }
 
-  const n = parseOptionalInt(t)
+  const n = parseOptionalInt(normalized)
   if (n == null || n <= 0) return null
   return { mode: 'single', n }
 }
 
-/** Classic overlap: best band intersects [sliderMin, sliderMax]. */
+/** Classic overlap: best band intersects [sliderMin, sliderMax]. Single = range of one. */
 export function bestPlayersOverlaps(
   best: BestPlayers | null,
   sliderMin: number,
   sliderMax: number,
 ): boolean {
   if (!best) return false
-  if (best.mode === 'single') return best.n >= sliderMin && best.n <= sliderMax
+  if (best.mode === 'single') {
+    // Same overlap idea as a 1-wide range: min==max==n
+    return best.n <= sliderMax && best.n >= sliderMin
+  }
   if (best.mode === 'range') return best.min <= sliderMax && best.max >= sliderMin
   return best.values.some((v) => v >= sliderMin && v <= sliderMax)
 }
 
+/** Compact card / list value (no 人). */
 export function formatBestPlayers(best: BestPlayers | null): string | null {
   if (!best) return null
   if (best.mode === 'single') return `${best.n}`
   if (best.mode === 'range') return `${best.min}–${best.max}`
   return best.values.join('·')
+}
+
+/** Detail-panel value with 人:「4 人」／「3–5 人」／「6、8、10 人」. */
+export function formatBestPlayersDetail(best: BestPlayers | null): string | null {
+  if (!best) return null
+  if (best.mode === 'single') return `${best.n} 人`
+  if (best.mode === 'range') return `${best.min}–${best.max} 人`
+  return `${best.values.join('、')} 人`
 }

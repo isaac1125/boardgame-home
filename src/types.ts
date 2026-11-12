@@ -21,7 +21,7 @@ export type Game = {
   notes: string
   /** Optional sheet column; empty / missing is fine. e.g. 熱門、新到 */
   highlight: string
-  /** Optional「適合人數」; empty / missing → null */
+  /** Optional「最推薦人數」(`best_players`); empty / missing → null */
   bestPlayers: BestPlayers | null
 }
 
