@@ -27,3 +27,16 @@ export function parseOptionalInt(value: string): number | null {
   const n = Number(t)
   return Number.isFinite(n) ? n : null
 }
+
+/**
+ * Sheet `category` may be one value or several separated by
+ * ASCII comma, Chinese comma, or顿号. Soft-fallback: blank → [].
+ */
+export function parseCategories(raw: string): string[] {
+  const t = raw.trim()
+  if (!t) return []
+  return t
+    .split(/[,，、]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}

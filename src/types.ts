@@ -4,7 +4,8 @@ export type Game = {
   playersMax: number
   playTimeMin: number | null
   playTimeMax: number | null
-  category: string
+  /** Parsed tags from sheet `category` (comma / 、 / ，). Empty cell → []. */
+  categories: string[]
   difficulty: string
   location: string
   lentTo: string

@@ -1,6 +1,6 @@
 import type { CatalogData, CatalogSettings, Game, ParamRow } from '../types'
 import { parseCsv, rowsToObjects } from './csv'
-import { parseBool, parseOptionalInt } from './format'
+import { parseBool, parseCategories, parseOptionalInt } from './format'
 
 /** Vite base ends with `/` (e.g. `/boardgame-home/` on GitHub Pages). */
 const BASE = import.meta.env.BASE_URL || '/'
@@ -37,7 +37,7 @@ function mapGame(row: Record<string, string>): Game | null {
     playersMax,
     playTimeMin: parseOptionalInt(row.play_time_min ?? ''),
     playTimeMax: parseOptionalInt(row.play_time_max ?? ''),
-    category: (row.category ?? '').trim(),
+    categories: parseCategories(row.category ?? ''),
     difficulty: (row.difficulty ?? '').trim(),
     location: (row.location ?? '').trim(),
     lentTo: (row.lent_to ?? '').trim(),

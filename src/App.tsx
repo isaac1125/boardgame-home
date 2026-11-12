@@ -154,7 +154,11 @@ function playersRangeActive(filters: Filters, bounds: CatalogBounds): boolean {
 
 function matchesFilters(game: Game, filters: Filters, bounds: CatalogBounds): boolean {
   const q = filters.name.trim().toLowerCase()
-  if (q && !game.name.toLowerCase().includes(q)) return false
+  if (q) {
+    const inName = game.name.toLowerCase().includes(q)
+    const inCategory = game.categories.some((c) => c.toLowerCase().includes(q))
+    if (!inName && !inCategory) return false
+  }
 
   if (playersRangeActive(filters, bounds)) {
     // Overlap: game can seat someone in the present group-size band.
@@ -178,7 +182,13 @@ function matchesFilters(game: Game, filters: Filters, bounds: CatalogBounds): bo
   if (!filters.includeNonChurch && game.location !== '教會') return false
   if (!filters.includeLent && game.lentTo) return false
 
-  if (filters.categories.size > 0 && !filters.categories.has(game.category)) return false
+  // ANY selected chip matches ANY of the game's category tags
+  if (
+    filters.categories.size > 0 &&
+    !game.categories.some((c) => filters.categories.has(c))
+  ) {
+    return false
+  }
   if (filters.difficulties.size > 0 && !filters.difficulties.has(game.difficulty)) return false
 
   return true
@@ -673,10 +683,14 @@ function GameCard({
             )}
           </div>
 
-          {game.category || game.highlight ? (
+          {game.categories.length > 0 || game.highlight ? (
             <div className="tag-row">
               {game.highlight ? <span className="tag-highlight">{game.highlight}</span> : null}
-              {game.category ? <span className="tag-cat">{game.category}</span> : null}
+              {game.categories.map((c) => (
+                <span key={c} className="tag-cat">
+                  {c}
+                </span>
+              ))}
             </div>
           ) : null}
 
@@ -742,7 +756,11 @@ function DetailPanel({
               <h2>{game.name}</h2>
               <div className="tag-row">
                 {game.highlight ? <span className="tag-highlight">{game.highlight}</span> : null}
-                {game.category ? <span className="tag-cat">{game.category}</span> : null}
+                {game.categories.map((c) => (
+                  <span key={c} className="tag-cat">
+                    {c}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -762,7 +780,9 @@ function DetailPanel({
           </div>
           <div>
             <div className="label">類別</div>
-            <div className="value">{game.category || '—'}</div>
+            <div className="value">
+              {game.categories.length ? game.categories.join('、') : '—'}
+            </div>
           </div>
           <div>
             <div className="label">難易度</div>
