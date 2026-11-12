@@ -578,6 +578,17 @@
   gap: 0.55rem;
 }
 
+.player-group--best {
+  padding-bottom: 0.35rem;
+}
+
+/* Clear break between「X人最推薦」and the non-recommended remainder */
+.player-group--rest {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 3px dashed color-mix(in srgb, var(--ink) 28%, transparent);
+}
+
 .player-group__header {
   position: sticky;
   top: 0;

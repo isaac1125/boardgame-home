@@ -1357,7 +1357,11 @@ export default function App() {
                       {bestFitGames.length > 0 ? (
                         <div className="player-group player-group--best">
                           <StickyGroupHeader
-                            label="最推薦人數"
+                            label={
+                              filters.playersRangeMin === filters.playersRangeMax
+                                ? `${filters.playersRangeMin}人最推薦`
+                                : `${filters.playersRangeMin}–${filters.playersRangeMax}人最推薦`
+                            }
                             count={bestFitGames.length}
                             tone="yellow"
                           />
@@ -1379,7 +1383,7 @@ export default function App() {
                         </div>
                       ) : null}
                       {otherFlatGames.length > 0 ? (
-                        <div className="player-group">
+                        <div className="player-group player-group--rest">
                           <div className="game-grid">
                             {otherFlatGames.map((game) => {
                               const i = enterIndex++
