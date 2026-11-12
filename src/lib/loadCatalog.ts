@@ -1,6 +1,6 @@
 import type { CatalogData, CatalogSettings, Game, ParamRow } from '../types'
 import { parseCsv, rowsToObjects } from './csv'
-import { parseBool, parseCategories, parseOptionalInt } from './format'
+import { parseBestPlayers, parseBool, parseCategories, parseOptionalInt } from './format'
 
 /** Vite base ends with `/` (e.g. `/boardgame-home/` on GitHub Pages). */
 const BASE = import.meta.env.BASE_URL || '/'
@@ -47,6 +47,8 @@ function mapGame(row: Record<string, string>): Game | null {
     notes: (row.notes ?? '').trim(),
     // Soft-fallback: missing `highlight` column → empty string (no break)
     highlight: (row.highlight ?? '').trim(),
+    // Soft-fallback: missing `best_players` → null
+    bestPlayers: parseBestPlayers(row.best_players ?? ''),
   }
 }
 

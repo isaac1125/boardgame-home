@@ -1,3 +1,9 @@
+/** Optional sheet `best_players` — soft-fallback null when blank/missing. */
+export type BestPlayers =
+  | { mode: 'single'; n: number }
+  | { mode: 'range'; min: number; max: number }
+  | { mode: 'list'; values: number[] }
+
 export type Game = {
   name: string
   playersMin: number
@@ -15,6 +21,8 @@ export type Game = {
   notes: string
   /** Optional sheet column; empty / missing is fine. e.g. 熱門、新到 */
   highlight: string
+  /** Optional「適合人數」; empty / missing → null */
+  bestPlayers: BestPlayers | null
 }
 
 export type ParamRow = {

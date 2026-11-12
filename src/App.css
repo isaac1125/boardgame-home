@@ -914,6 +914,20 @@
   line-height: 1.2;
 }
 
+.meta-item--best {
+  gap: 0.18rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #555;
+}
+
+.meta-best-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #777;
+}
+
 .meta-item--loc {
   margin-left: auto;
   color: #555;

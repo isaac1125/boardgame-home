@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { CatalogData, Game } from './types'
-import { formatPlayTime, formatPlayers } from './lib/format'
+import {
+  bestPlayersOverlaps,
+  formatBestPlayers,
+  formatPlayTime,
+  formatPlayers,
+} from './lib/format'
 import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
 import { youtubeEmbedUrl } from './lib/youtube'
 import './App.css'
@@ -231,6 +236,18 @@ function compareHighlightFirst(a: Game, b: Game): number {
   const aH = a.highlight ? 0 : 1
   const bH = b.highlight ? 0 : 1
   if (aH !== bH) return aH - bH
+  return compareWithinGroup(a, b)
+}
+
+function compareBestFitThenChurch(
+  a: Game,
+  b: Game,
+  sliderMin: number,
+  sliderMax: number,
+): number {
+  const aFit = bestPlayersOverlaps(a.bestPlayers, sliderMin, sliderMax) ? 0 : 1
+  const bFit = bestPlayersOverlaps(b.bestPlayers, sliderMin, sliderMax) ? 0 : 1
+  if (aFit !== bFit) return aFit - bFit
   return compareWithinGroup(a, b)
 }
 
@@ -657,6 +674,7 @@ function GameCard({
   onOpen: () => void
 }) {
   const time = formatPlayTime(game)
+  const bestLabel = formatBestPlayers(game.bestPlayers)
   const isLent = Boolean(game.lentTo)
   const statusBits = [game.unopened ? '未開封' : null].filter(Boolean)
 
@@ -700,6 +718,12 @@ function GameCard({
                 <IconPeople />
                 <span>{formatPlayersRange(game)}</span>
               </span>
+              {bestLabel ? (
+                <span className="meta-item meta-item--best" title="適合人數">
+                  <span className="meta-best-label">適合</span>
+                  <span>{bestLabel}</span>
+                </span>
+              ) : null}
               {time ? (
                 <span className="meta-item" title="預計時間">
                   <IconClock />
@@ -773,6 +797,10 @@ function DetailPanel({
           <div>
             <div className="label">人數</div>
             <div className="value">{formatPlayers(game)}</div>
+          </div>
+          <div>
+            <div className="label">適合人數</div>
+            <div className="value">{formatBestPlayers(game.bestPlayers) ?? '—'}</div>
           </div>
           <div>
             <div className="label">預計時間</div>
@@ -951,6 +979,8 @@ export default function App() {
     return data.games.filter((g) => matchesFilters(g, filters, bounds))
   }, [data, filters, bounds])
 
+  const sliderActive = playersRangeActive(filters, bounds)
+
   const highlighted = useMemo(
     () => [...filtered.filter((g) => g.highlight)].sort(compareHighlightFirst),
     [filtered],
@@ -962,7 +992,36 @@ export default function App() {
     return filtered.filter((g) => !names.has(g.name))
   }, [filtered, highlighted])
 
-  const groups = useMemo(() => groupByPlayersMax(restGames), [restGames])
+  /** Full-range slider → keep players_max sections. Narrowed → flat + 適合人數 boost. */
+  const groups = useMemo(
+    () => (sliderActive ? [] : groupByPlayersMax(restGames)),
+    [restGames, sliderActive],
+  )
+
+  const bestFitGames = useMemo(() => {
+    if (!sliderActive) return []
+    return restGames
+      .filter((g) =>
+        bestPlayersOverlaps(g.bestPlayers, filters.playersRangeMin, filters.playersRangeMax),
+      )
+      .sort(compareWithinGroup)
+  }, [restGames, sliderActive, filters.playersRangeMin, filters.playersRangeMax])
+
+  const otherFlatGames = useMemo(() => {
+    if (!sliderActive) return []
+    const bestNames = new Set(bestFitGames.map((g) => g.name))
+    return restGames
+      .filter((g) => !bestNames.has(g.name))
+      .sort((a, b) =>
+        compareBestFitThenChurch(a, b, filters.playersRangeMin, filters.playersRangeMax),
+      )
+  }, [
+    restGames,
+    sliderActive,
+    bestFitGames,
+    filters.playersRangeMin,
+    filters.playersRangeMax,
+  ])
 
   /** Remount list on filter/preset change → fade + restagger cards. */
   const listKey = useMemo(
@@ -1286,30 +1345,78 @@ export default function App() {
                     </div>
                   ) : null}
 
-                  {groups.map((group) => (
-                    <div key={group.playersMax} className="player-group">
-                      <StickyGroupHeader
-                        label={`${group.playersMax}人`}
-                        hint="最多支援"
-                        count={group.games.length}
-                      />
-                      <div className="game-grid">
-                        {group.games.map((game) => {
-                          const i = enterIndex++
-                          return (
-                            <GameCard
-                              key={game.name}
-                              game={game}
-                              showLocation={data.settings.showLocation}
-                              showLentTo={data.settings.showLentTo}
-                              enterIndex={i}
-                              onOpen={() => setSelected(game)}
-                            />
-                          )
-                        })}
+                  {sliderActive ? (
+                    <>
+                      {bestFitGames.length > 0 ? (
+                        <div className="player-group player-group--best">
+                          <StickyGroupHeader
+                            label="適合人數"
+                            count={bestFitGames.length}
+                            tone="yellow"
+                          />
+                          <div className="game-grid">
+                            {bestFitGames.map((game) => {
+                              const i = enterIndex++
+                              return (
+                                <GameCard
+                                  key={`best-${game.name}`}
+                                  game={game}
+                                  showLocation={data.settings.showLocation}
+                                  showLentTo={data.settings.showLentTo}
+                                  enterIndex={i}
+                                  onOpen={() => setSelected(game)}
+                                />
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+                      {otherFlatGames.length > 0 ? (
+                        <div className="player-group">
+                          <div className="game-grid">
+                            {otherFlatGames.map((game) => {
+                              const i = enterIndex++
+                              return (
+                                <GameCard
+                                  key={game.name}
+                                  game={game}
+                                  showLocation={data.settings.showLocation}
+                                  showLentTo={data.settings.showLentTo}
+                                  enterIndex={i}
+                                  onOpen={() => setSelected(game)}
+                                />
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    groups.map((group) => (
+                      <div key={group.playersMax} className="player-group">
+                        <StickyGroupHeader
+                          label={`${group.playersMax}人`}
+                          hint="最多支援"
+                          count={group.games.length}
+                        />
+                        <div className="game-grid">
+                          {group.games.map((game) => {
+                            const i = enterIndex++
+                            return (
+                              <GameCard
+                                key={game.name}
+                                game={game}
+                                showLocation={data.settings.showLocation}
+                                showLentTo={data.settings.showLentTo}
+                                enterIndex={i}
+                                onOpen={() => setSelected(game)}
+                              />
+                            )
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </>
               )
             })()}
