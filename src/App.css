@@ -681,7 +681,7 @@
   bottom: 0.28rem;
   z-index: 5;
   transform: none;
-  max-height: 2.55rem;
+  max-height: 2.7rem;
 }
 
 .lent-seal__face {
@@ -691,8 +691,8 @@
   min-width: 4.5rem;
   max-width: 5.2rem;
   max-height: inherit;
-  /* Extra top pad so first line clears double/inset border; room for lent_to */
-  padding: 0.34rem 0.4rem 0.2rem;
+  /* Push「已借出」clear of double/inset top frame; keep stamp box fixed */
+  padding: 0.58rem 0.4rem 0.1rem;
   text-align: center;
   color: var(--wax);
   /* Uneven ink wash behind type */
@@ -752,11 +752,12 @@
   position: relative;
   z-index: 1;
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
   /* Slightly tighter tracking so glyphs sit clear of the side/top frame */
-  letter-spacing: 0.12em;
-  line-height: 1.15;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  padding-top: 0.06rem;
   text-shadow: 0 0 0.4px rgba(142, 43, 43, 0.35);
 }
 
@@ -767,8 +768,8 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  margin: 0.08rem auto 0;
-  padding: 0.02rem 0.05rem 0.04rem;
+  margin: 0.06rem auto 0;
+  padding: 0.02rem 0.05rem 0;
   /* CJK-safe face — Special Elite lacks Han glyphs */
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   font-size: 0.55rem;
