@@ -66,21 +66,21 @@ const PRESETS: Record<
     }),
   },
   quick: {
-    label: '快速來一局',
+    label: '快速開局',
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       playTimeCap: 30,
     }),
   },
   deduction: {
-    label: '心機陣營類',
+    label: '心機陣營',
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       categories: new Set(['陣營', '推理']),
     }),
   },
   'few-players': {
-    label: '人少也能玩',
+    label: '人少也行',
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       playersRangeMin: Math.max(bounds.min, 2),
