@@ -12,7 +12,7 @@ import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
 import { youtubeEmbedUrl } from './lib/youtube'
 import './App.css'
 
-type PresetId = 'party-multi' | 'quick'
+type PresetId = 'party-multi' | 'quick' | 'deduction' | 'few-players'
 
 type Filters = {
   name: string
@@ -25,7 +25,7 @@ type Filters = {
   playersRangeMax: number
   categories: Set<string>
   difficulties: Set<string>
-  /** games with players_max >= this (scenario: 小組多人) */
+  /** games with players_max >= this (scenario: 多人派對) */
   playersMaxAtLeast: number | null
   /** effective play time (max, else min) <= this; missing times excluded */
   playTimeCap: number | null
@@ -58,7 +58,7 @@ const PRESETS: Record<
   { label: string; apply: (bounds: CatalogBounds) => Filters }
 > = {
   'party-multi': {
-    label: '小組多人派對',
+    label: '多人派對',
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       categories: new Set(['派對']),
@@ -70,6 +70,21 @@ const PRESETS: Record<
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       playTimeCap: 30,
+    }),
+  },
+  deduction: {
+    label: '心機陣營類',
+    apply: (bounds) => ({
+      ...emptyFilters(bounds),
+      categories: new Set(['陣營', '推理']),
+    }),
+  },
+  'few-players': {
+    label: '人少也能玩',
+    apply: (bounds) => ({
+      ...emptyFilters(bounds),
+      playersRangeMin: Math.max(bounds.min, 2),
+      playersRangeMax: Math.min(bounds.max, 4),
     }),
   },
 }
