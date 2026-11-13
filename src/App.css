@@ -293,7 +293,7 @@
 .presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
   margin-bottom: 0.55rem;
   overflow: visible;
 }
@@ -302,12 +302,12 @@
   flex: 0 1 auto;
   font: inherit;
   font-weight: 800;
-  font-size: 0.74rem;
+  font-size: 0.88rem;
   border: 3px solid var(--ink);
   border-radius: 10px;
   background: #fff;
-  padding: 0.35rem 0.55rem;
-  min-height: 2.1rem;
+  padding: 0.42rem 0.72rem;
+  min-height: 2.35rem;
   cursor: pointer;
   box-shadow: 3px 3px 0 var(--ink);
   touch-action: manipulation;
@@ -318,13 +318,6 @@
 .preset-chip.is-on {
   background: var(--coral);
   color: #fff;
-}
-
-.preset-chip--clear {
-  background: #f3eee4;
-  font-size: 0.72rem;
-  box-shadow: 2px 2px 0 var(--ink);
-  border-width: 2px;
 }
 
 .preset-chip:active {
@@ -548,10 +541,36 @@
   font-weight: 900;
 }
 
-.list-header span {
+.list-header__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.list-header__count {
   font-weight: 700;
   opacity: 0.7;
   font-size: 0.82rem;
+}
+
+.list-header__clear {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: none;
+  background: transparent;
+  color: #666;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+}
+
+.list-header__clear:active {
+  color: var(--ink);
 }
 
 .grouped-list {
