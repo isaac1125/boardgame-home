@@ -1219,18 +1219,28 @@ export default function App() {
           }}
         />
 
-        <div className="presets" role="group" aria-label="情境快捷">
-          {(Object.keys(PRESETS) as PresetId[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              className={`preset-chip ${activePreset === id ? 'is-on' : ''}`}
-              aria-pressed={activePreset === id}
-              onClick={() => applyPreset(id)}
-            >
-              {PRESETS[id].label}
+        <div className="presets-bar">
+          <div className="presets" role="group" aria-label="情境快捷">
+            {(Object.keys(PRESETS) as PresetId[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`preset-chip ${activePreset === id ? 'is-on' : ''}`}
+                aria-pressed={activePreset === id}
+                onClick={() => applyPreset(id)}
+              >
+                {PRESETS[id].label}
+              </button>
+            ))}
+          </div>
+          {activePreset ||
+          chipCount > 0 ||
+          hasSearch ||
+          playersRangeActive(filters, bounds) ? (
+            <button type="button" className="presets-clear" onClick={clearAllFilters}>
+              清除
             </button>
-          ))}
+          ) : null}
         </div>
 
         <button
@@ -1319,17 +1329,7 @@ export default function App() {
       <section className="list-section" ref={listRef} id="game-list">
         <div className="list-header">
           <h2>遊戲列表</h2>
-          <div className="list-header__meta">
-            {activePreset ||
-            chipCount > 0 ||
-            hasSearch ||
-            playersRangeActive(filters, bounds) ? (
-              <button type="button" className="list-header__clear" onClick={clearAllFilters}>
-                清除
-              </button>
-            ) : null}
-            <span className="list-header__count">共 {filtered.length} 款</span>
-          </div>
+          <span className="list-header__count">共 {filtered.length} 款</span>
         </div>
 
         {filtered.length === 0 ? (
