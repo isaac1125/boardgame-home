@@ -1237,8 +1237,14 @@ export default function App() {
           chipCount > 0 ||
           hasSearch ||
           playersRangeActive(filters, bounds) ? (
-            <button type="button" className="presets-clear" onClick={clearAllFilters}>
-              清除
+            <button
+              type="button"
+              className="presets-clear"
+              onClick={clearAllFilters}
+              aria-label="清除"
+              title="清除"
+            >
+              ×
             </button>
           ) : null}
         </div>
