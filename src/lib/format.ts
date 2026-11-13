@@ -138,18 +138,41 @@ export function bestPlayersOverlaps(
   return best.values.some((v) => v >= sliderMin && v <= sliderMax)
 }
 
-/** Compact card / list value (no 人). Middot with spaces so long lists can wrap cleanly. */
+/**
+ * Collapse consecutive ints into range segments for compact copy:
+ * [14,16,17,18,20,22] → ["14","16–18","20","22"]
+ */
+function collapseBestPlayerSegments(values: number[]): string[] {
+  if (values.length === 0) return []
+  const sorted = [...values].sort((a, b) => a - b)
+  const segments: string[] = []
+  let start = sorted[0]
+  let prev = sorted[0]
+  for (let i = 1; i < sorted.length; i++) {
+    const n = sorted[i]
+    if (n === prev + 1) {
+      prev = n
+      continue
+    }
+    segments.push(start === prev ? `${start}` : `${start}–${prev}`)
+    start = prev = n
+  }
+  segments.push(start === prev ? `${start}` : `${start}–${prev}`)
+  return segments
+}
+
+/** Compact card / list value (no 人). Lists collapse runs: 14·16–18·20·22. */
 export function formatBestPlayers(best: BestPlayers | null): string | null {
   if (!best) return null
   if (best.mode === 'single') return `${best.n}`
   if (best.mode === 'range') return `${best.min}–${best.max}`
-  return best.values.join(' · ')
+  return collapseBestPlayerSegments(best.values).join('·')
 }
 
-/** Detail-panel value with 人:「4 人」／「3–5 人」／「6、8、10 人」. */
+/** Detail-panel value with 人:「4 人」／「3–5 人」／「14、16–18、20、22 人」. */
 export function formatBestPlayersDetail(best: BestPlayers | null): string | null {
   if (!best) return null
   if (best.mode === 'single') return `${best.n} 人`
   if (best.mode === 'range') return `${best.min}–${best.max} 人`
-  return `${best.values.join('、')} 人`
+  return `${collapseBestPlayerSegments(best.values).join('、')} 人`
 }
