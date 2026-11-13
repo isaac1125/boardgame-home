@@ -12,7 +12,7 @@ import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
 import { youtubeEmbedUrl } from './lib/youtube'
 import './App.css'
 
-type PresetId = 'party-multi' | 'quick'
+type PresetId = 'party-multi' | 'quick' | 'deduction' | 'few-players'
 
 type Filters = {
   name: string
@@ -25,7 +25,7 @@ type Filters = {
   playersRangeMax: number
   categories: Set<string>
   difficulties: Set<string>
-  /** games with players_max >= this (scenario: 小組多人) */
+  /** games with players_max >= this (scenario: 多人派對) */
   playersMaxAtLeast: number | null
   /** effective play time (max, else min) <= this; missing times excluded */
   playTimeCap: number | null
@@ -58,7 +58,7 @@ const PRESETS: Record<
   { label: string; apply: (bounds: CatalogBounds) => Filters }
 > = {
   'party-multi': {
-    label: '小組多人派對',
+    label: '多人派對',
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       categories: new Set(['派對']),
@@ -66,10 +66,25 @@ const PRESETS: Record<
     }),
   },
   quick: {
-    label: '快速來一局',
+    label: '快速開局',
     apply: (bounds) => ({
       ...emptyFilters(bounds),
       playTimeCap: 30,
+    }),
+  },
+  deduction: {
+    label: '心機陣營',
+    apply: (bounds) => ({
+      ...emptyFilters(bounds),
+      categories: new Set(['陣營', '推理']),
+    }),
+  },
+  'few-players': {
+    label: '人少也行',
+    apply: (bounds) => ({
+      ...emptyFilters(bounds),
+      playersRangeMin: Math.max(bounds.min, 2),
+      playersRangeMax: Math.min(bounds.max, 4),
     }),
   },
 }
@@ -1204,24 +1219,32 @@ export default function App() {
           }}
         />
 
-        <div className="presets" role="group" aria-label="情境快捷">
-          {(Object.keys(PRESETS) as PresetId[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              className={`preset-chip ${activePreset === id ? 'is-on' : ''}`}
-              aria-pressed={activePreset === id}
-              onClick={() => applyPreset(id)}
-            >
-              {PRESETS[id].label}
-            </button>
-          ))}
+        <div className="presets-bar">
+          <div className="presets" role="group" aria-label="情境快捷">
+            {(Object.keys(PRESETS) as PresetId[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`preset-chip ${activePreset === id ? 'is-on' : ''}`}
+                aria-pressed={activePreset === id}
+                onClick={() => applyPreset(id)}
+              >
+                {PRESETS[id].label}
+              </button>
+            ))}
+          </div>
           {activePreset ||
           chipCount > 0 ||
           hasSearch ||
           playersRangeActive(filters, bounds) ? (
-            <button type="button" className="preset-chip preset-chip--clear" onClick={clearAllFilters}>
-              清除
+            <button
+              type="button"
+              className="presets-clear"
+              onClick={clearAllFilters}
+              aria-label="清除"
+              title="清除"
+            >
+              ×
             </button>
           ) : null}
         </div>
@@ -1312,7 +1335,7 @@ export default function App() {
       <section className="list-section" ref={listRef} id="game-list">
         <div className="list-header">
           <h2>遊戲列表</h2>
-          <span>共 {filtered.length} 款</span>
+          <span className="list-header__count">共 {filtered.length} 款</span>
         </div>
 
         {filtered.length === 0 ? (

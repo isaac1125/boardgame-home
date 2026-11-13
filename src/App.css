@@ -290,27 +290,38 @@
   opacity: 0.55;
 }
 
+.presets-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  /* Extra air before × — chip hard-shadows eat ~3px of visual gap. */
+  gap: 0.85rem;
+  margin-bottom: 0.55rem;
+  padding-inline: 0.05rem;
+  padding-bottom: 0.15rem;
+}
+
 .presets {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.4rem;
-  margin-bottom: 0.55rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  padding-bottom: 0.1rem;
+  gap: 0.32rem;
+  /* Don’t grow or shrink — chips must not spill into the × gap. */
+  flex: 0 0 auto;
+  min-width: min-content;
+  overflow: visible;
 }
 
 .preset-chip {
-  flex-shrink: 0;
+  flex: 0 0 auto;
   font: inherit;
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   border: 3px solid var(--ink);
   border-radius: 10px;
   background: #fff;
-  padding: 0.4rem 0.7rem;
-  min-height: 2.25rem;
+  padding: 0.26rem 0.38rem;
+  min-height: 2rem;
+  line-height: 1.15;
   cursor: pointer;
   box-shadow: 3px 3px 0 var(--ink);
   touch-action: manipulation;
@@ -323,14 +334,36 @@
   color: #fff;
 }
 
-.preset-chip--clear {
-  background: #f3eee4;
-  font-size: 0.72rem;
-  box-shadow: 2px 2px 0 var(--ink);
-  border-width: 2px;
+.preset-chip:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
 }
 
-.preset-chip:active {
+.presets-clear {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin: 0;
+  margin-inline-start: 0.2rem;
+  padding: 0;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 2px 2px 0 var(--ink);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.12);
+}
+
+.presets-clear:active {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 var(--ink);
 }
@@ -551,7 +584,7 @@
   font-weight: 900;
 }
 
-.list-header span {
+.list-header__count {
   font-weight: 700;
   opacity: 0.7;
   font-size: 0.82rem;
@@ -1370,10 +1403,6 @@
     overflow: visible;
   }
 
-  .presets {
-    flex-wrap: wrap;
-    overflow: visible;
-  }
 }
 
 /* —— Restrained motion (skip when reduced-motion) —— */
