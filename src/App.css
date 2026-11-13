@@ -936,7 +936,11 @@
   font-weight: 800;
   color: #666;
   letter-spacing: 0.01em;
-  white-space: nowrap;
+  /* Long comma-lists (e.g. 14 · 16 · 17 · 18 · 20 · 22) must wrap, not clip */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  line-height: 1.3;
 }
 
 .meta-item--loc {
