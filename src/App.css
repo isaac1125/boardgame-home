@@ -293,15 +293,20 @@
 .presets-bar {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
   margin-bottom: 0.55rem;
+  /* Room for hard chip shadows so the row doesn’t kiss panel edges. */
+  padding-inline: 0.05rem;
+  padding-bottom: 0.15rem;
 }
 
 .presets {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.3rem;
-  flex: 1 1 auto;
+  gap: 0.4rem;
+  /* Don’t grow — keep chips + × as one compact group with even gaps. */
+  flex: 0 1 auto;
   min-width: 0;
   overflow: visible;
 }
@@ -314,7 +319,7 @@
   border: 3px solid var(--ink);
   border-radius: 10px;
   background: #fff;
-  padding: 0.28rem 0.48rem;
+  padding: 0.28rem 0.45rem;
   min-height: 2rem;
   line-height: 1.15;
   cursor: pointer;
