@@ -1325,7 +1325,7 @@ export default function App() {
             hasSearch ||
             playersRangeActive(filters, bounds) ? (
               <button type="button" className="list-header__clear" onClick={clearAllFilters}>
-                清除篩選
+                清除
               </button>
             ) : null}
             <span className="list-header__count">共 {filtered.length} 款</span>
