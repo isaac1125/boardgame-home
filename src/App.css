@@ -75,7 +75,69 @@
 }
 
 .wishlist-grid {
+  display: grid;
+  gap: 0.7rem;
   margin-top: 0.55rem;
+}
+
+.wishlist-card {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border: 3px solid var(--ink);
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+  border-radius: 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+  color: inherit;
+  font: inherit;
+}
+
+.wishlist-card:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.wishlist-card:disabled,
+.wishlist-card--noref {
+  cursor: default;
+  opacity: 0.92;
+}
+
+.wishlist-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.wishlist-card__body h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.wishlist-card__hint {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.wishlist-card__hint--muted {
+  color: #888;
+}
+
+.cover--wishlist {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
 }
 
 .fireworks-canvas {
@@ -1473,7 +1535,8 @@
     }
   }
 
-  .game-card {
+  .game-card,
+  .wishlist-card {
     animation: card-rise 0.38s ease both;
     animation-delay: calc(var(--enter-i, 0) * 32ms);
   }
@@ -1536,6 +1599,7 @@
 @media (prefers-reduced-motion: reduce) {
   .list-swap,
   .game-card,
+  .wishlist-card,
   .lent-seal,
   .quiz-panel,
   .quiz-toast {

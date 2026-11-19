@@ -23,6 +23,11 @@ export type Game = {
   highlight: string
   /** Optional「最推薦人數」(`best_players`); empty / missing → null */
   bestPlayers: BestPlayers | null
+  /**
+   * Optional 參考連結 (`ref_url`) — mainly for wishlist rows.
+   * Soft-fallback: missing column / blank → ''.
+   */
+  refUrl: string
 }
 
 export type ParamRow = {

@@ -18,6 +18,7 @@ import {
   WISHLIST_HASH,
   WISHLIST_TAP_TARGET,
   WISHLIST_TAP_WINDOW_MS,
+  wishlistThumbCandidates,
   writeWishlistUnlocked,
 } from './lib/wishlist'
 import { youtubeEmbedUrl } from './lib/youtube'
@@ -356,6 +357,71 @@ function CoverThumb({
         </div>
       )}
     </div>
+  )
+}
+
+/** Wishlist cover: thumbnail_url → Microlink OG → thum.io → letter placeholder. */
+function WishlistCover({ game }: { game: Game }) {
+  const candidates = useMemo(
+    () =>
+      wishlistThumbCandidates({
+        thumbnailUrl: game.thumbnailUrl,
+        refUrl: game.refUrl,
+      })
+        .map((u) => resolveAssetUrl(u))
+        .filter(Boolean),
+    [game.thumbnailUrl, game.refUrl],
+  )
+  const [index, setIndex] = useState(0)
+  const src = candidates[index] ?? ''
+  const showImg = Boolean(src)
+
+  return (
+    <div className="cover cover--wishlist" aria-hidden={showImg ? undefined : true}>
+      {showImg ? (
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setIndex((i) => i + 1)}
+        />
+      ) : (
+        <div className="cover__placeholder">
+          <span>{game.name.slice(0, 1) || '?'}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Lightweight wishlist row: name + thumb; tap opens ref_url (no DetailPanel). */
+function WishlistCard({ game, enterIndex = 0 }: { game: Game; enterIndex?: number }) {
+  const ref = game.refUrl.trim()
+  const hasRef = Boolean(ref)
+
+  return (
+    <button
+      type="button"
+      className={`wishlist-card ${hasRef ? '' : 'wishlist-card--noref'}`}
+      style={{ '--enter-i': Math.min(enterIndex, 14) } as CSSProperties}
+      onClick={() => {
+        if (!hasRef) return
+        window.open(ref, '_blank', 'noopener,noreferrer')
+      }}
+      disabled={!hasRef}
+      aria-label={hasRef ? `開啟「${game.name}」參考連結` : `${game.name}（尚無參考連結）`}
+    >
+      <WishlistCover game={game} />
+      <div className="wishlist-card__body">
+        <h3>{game.name}</h3>
+        {hasRef ? (
+          <span className="wishlist-card__hint">參考連結 ↗</span>
+        ) : (
+          <span className="wishlist-card__hint wishlist-card__hint--muted">尚未填 ref_url</span>
+        )}
+      </div>
+    </button>
   )
 }
 
@@ -1263,30 +1329,15 @@ export default function App() {
               還沒有願望。在試算表 <code>notes</code> 寫入「願望」就會出現在這裡。
             </div>
           ) : (
-            <div className="game-grid wishlist-grid">
+            <div className="wishlist-grid">
               {wishlistGames.map((game, i) => (
-                <GameCard
-                  key={`wish-${game.name}`}
-                  game={game}
-                  showLocation={data.settings.showLocation}
-                  showLentTo={data.settings.showLentTo}
-                  enterIndex={i}
-                  onOpen={() => setSelected(game)}
-                />
+                <WishlistCard key={`wish-${game.name}`} game={game} enterIndex={i} />
               ))}
             </div>
           )}
         </section>
 
         {showFireworks ? <FireworksBurst onDone={onFireworksDone} /> : null}
-
-        {selected ? (
-          <DetailPanel
-            game={selected}
-            settings={data.settings}
-            onClose={() => setSelected(null)}
-          />
-        ) : null}
       </div>
     )
   }

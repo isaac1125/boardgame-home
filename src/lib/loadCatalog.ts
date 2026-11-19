@@ -55,6 +55,8 @@ function mapGame(row: Record<string, string>): Game | null {
     highlight: (row.highlight ?? '').trim(),
     // Soft-fallback: missing `best_players` → null
     bestPlayers: parseBestPlayers(row.best_players ?? ''),
+    // Soft-fallback: missing `ref_url` column → ''
+    refUrl: (row.ref_url ?? '').trim(),
   }
 }
 
