@@ -1,6 +1,7 @@
 import type { CatalogData, CatalogSettings, Game, ParamRow } from '../types'
 import { parseCsv, rowsToObjects } from './csv'
 import { parseBestPlayers, parseBool, parseCategories, parseOptionalInt } from './format'
+import { WISHLIST_MARKER } from './wishlist'
 
 /** Vite base ends with `/` (e.g. `/boardgame-home/` on GitHub Pages). */
 const BASE = import.meta.env.BASE_URL || '/'
@@ -26,10 +27,15 @@ function mapGame(row: Record<string, string>): Game | null {
   const name = (row.name ?? '').trim()
   if (!name) return null
 
-  const playersMax = parseOptionalInt(row.players_max ?? '')
-  if (playersMax == null) return null
+  const notes = (row.notes ?? '').trim()
+  const wishlistOnly = notes.includes(WISHLIST_MARKER)
+
+  const playersMaxRaw = parseOptionalInt(row.players_max ?? '')
+  // Main catalog still requires players_max; wishlist rows may be name + notes only.
+  if (playersMaxRaw == null && !wishlistOnly) return null
 
   const playersMin = parseOptionalInt(row.players_min ?? '') ?? 1
+  const playersMax = playersMaxRaw ?? playersMin
 
   return {
     name,
@@ -44,7 +50,7 @@ function mapGame(row: Record<string, string>): Game | null {
     unopened: parseBool(row.unopened ?? ''),
     thumbnailUrl: (row.thumbnail_url ?? '').trim(),
     rulesVideoUrl: (row.rules_video_url ?? '').trim(),
-    notes: (row.notes ?? '').trim(),
+    notes,
     // Soft-fallback: missing `highlight` column → empty string (no break)
     highlight: (row.highlight ?? '').trim(),
     // Soft-fallback: missing `best_players` → null

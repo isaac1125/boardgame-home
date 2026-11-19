@@ -952,7 +952,6 @@ export default function App() {
   const [quizPatches, setQuizPatches] = useState<QuizPatch[]>([])
   const [quizToast, setQuizToast] = useState<string | null>(null)
   const [view, setView] = useState<AppView>('catalog')
-  const [wishlistUnlocked, setWishlistUnlocked] = useState(false)
   const [showFireworks, setShowFireworks] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLElement>(null)
@@ -981,17 +980,14 @@ export default function App() {
     }
   }, [])
 
-  // Restore unlock + #wishlist within the same session (easter egg, not security)
+  // Reopen via #wishlist only if already unlocked this session (not via a single brand tap)
   useEffect(() => {
-    const unlocked = readWishlistUnlocked()
-    setWishlistUnlocked(unlocked)
-    if (unlocked && isWishlistHash()) setView('wishlist')
+    if (readWishlistUnlocked() && isWishlistHash()) setView('wishlist')
   }, [])
 
   useEffect(() => {
     function onHash() {
       if (isWishlistHash() && readWishlistUnlocked()) {
-        setWishlistUnlocked(true)
         setView('wishlist')
       } else if (!isWishlistHash() && view === 'wishlist') {
         setView('catalog')
@@ -1169,7 +1165,6 @@ export default function App() {
 
   const openWishlist = useCallback((withFireworks: boolean) => {
     writeWishlistUnlocked(true)
-    setWishlistUnlocked(true)
     setView('wishlist')
     setSelected(null)
     setQuizOpen(false)
@@ -1190,15 +1185,10 @@ export default function App() {
   }
 
   function onBrandTap() {
-    // Already on wishlist → replay entrance burst (handy for demo / reduced surprise)
+    // Casual taps must never open wishlist — always need 7 within the window.
+    // (sessionStorage / #wishlist only reopen via URL, not a single brand tap.)
     if (view === 'wishlist') {
-      setShowFireworks(true)
-      return
-    }
-
-    // Already unlocked this session → reopen wishlist (no fireworks)
-    if (wishlistUnlocked || readWishlistUnlocked()) {
-      openWishlist(false)
+      // Already inside: ignore stray taps (no fireworks replay on 1-tap)
       return
     }
 
