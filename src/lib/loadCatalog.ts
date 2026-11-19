@@ -24,39 +24,39 @@ export function resolveAssetUrl(url: string): string {
 }
 
 function mapGame(row: Record<string, string>): Game | null {
-  const name = (row.name ?? '').trim()
+  const name = cell(row, 'name')
   if (!name) return null
 
-  const notes = (row.notes ?? '').trim()
+  const notes = cell(row, 'notes')
   const wishlistOnly = notes.includes(WISHLIST_MARKER)
 
-  const playersMaxRaw = parseOptionalInt(row.players_max ?? '')
+  const playersMaxRaw = parseOptionalInt(cell(row, 'players_max'))
   // Main catalog still requires players_max; wishlist rows may be name + notes only.
   if (playersMaxRaw == null && !wishlistOnly) return null
 
-  const playersMin = parseOptionalInt(row.players_min ?? '') ?? 1
+  const playersMin = parseOptionalInt(cell(row, 'players_min')) ?? 1
   const playersMax = playersMaxRaw ?? playersMin
 
   return {
     name,
     playersMin,
     playersMax,
-    playTimeMin: parseOptionalInt(row.play_time_min ?? ''),
-    playTimeMax: parseOptionalInt(row.play_time_max ?? ''),
-    categories: parseCategories(row.category ?? ''),
-    difficulty: (row.difficulty ?? '').trim(),
-    location: (row.location ?? '').trim(),
-    lentTo: (row.lent_to ?? '').trim(),
-    unopened: parseBool(row.unopened ?? ''),
-    thumbnailUrl: (row.thumbnail_url ?? '').trim(),
-    rulesVideoUrl: (row.rules_video_url ?? '').trim(),
+    playTimeMin: parseOptionalInt(cell(row, 'play_time_min')),
+    playTimeMax: parseOptionalInt(cell(row, 'play_time_max')),
+    categories: parseCategories(cell(row, 'category')),
+    difficulty: cell(row, 'difficulty'),
+    location: cell(row, 'location'),
+    lentTo: cell(row, 'lent_to'),
+    unopened: parseBool(cell(row, 'unopened')),
+    thumbnailUrl: cell(row, 'thumbnail_url'),
+    rulesVideoUrl: cell(row, 'rules_video_url'),
     notes,
     // Soft-fallback: missing `highlight` column → empty string (no break)
-    highlight: (row.highlight ?? '').trim(),
+    highlight: cell(row, 'highlight'),
     // Soft-fallback: missing `best_players` → null
-    bestPlayers: parseBestPlayers(row.best_players ?? ''),
-    // Soft-fallback: missing `ref_url` column → ''
-    refUrl: (row.ref_url ?? '').trim(),
+    bestPlayers: parseBestPlayers(cell(row, 'best_players')),
+    // Soft-fallback: missing `ref_url` column → '' (aliases: 參考連結)
+    refUrl: cell(row, 'ref_url', '參考連結'),
   }
 }
 
@@ -100,10 +100,29 @@ function buildFromRows(
 }
 
 async function fetchCsv(url: string): Promise<Record<string, string>[]> {
-  const res = await fetch(url)
+  // Bust browser/CDN caches so sheet edits (e.g. new ref_url) show on refresh.
+  const sep = url.includes('?') ? '&' : '?'
+  const res = await fetch(`${url}${sep}_ts=${Date.now()}`, { cache: 'no-store' })
   if (!res.ok) throw new Error(`無法讀取 ${url}（${res.status}）`)
   const text = await res.text()
   return rowsToObjects(parseCsv(text))
+}
+
+/** Soft-read a sheet cell; tolerate header case / common aliases. */
+function cell(row: Record<string, string>, ...keys: string[]): string {
+  for (const k of keys) {
+    const direct = row[k]
+    if (direct != null && direct.trim() !== '') return direct.trim()
+  }
+  const lowerMap = new Map<string, string>()
+  for (const [k, v] of Object.entries(row)) {
+    lowerMap.set(k.trim().toLowerCase(), v)
+  }
+  for (const k of keys) {
+    const v = lowerMap.get(k.trim().toLowerCase())
+    if (v != null && v.trim() !== '') return v.trim()
+  }
+  return ''
 }
 
 type RuntimeConfig = {
