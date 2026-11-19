@@ -1,0 +1,17 @@
+type,key,value,sort
+category,,派對,1
+category,,策略,2
+category,,家庭,3
+category,,合作,4
+category,,解謎,5
+category,,陣營,6
+category,,反應,7
+category,,詞語聯想,8
+difficulty,,無腦,1
+difficulty,,輕鬆,2
+difficulty,,動腦,3
+difficulty,,燒腦,4
+location,,教會,1
+location,,家裡,2
+setting,show_location,TRUE,1
+setting,show_lent_to,TRUE,2
