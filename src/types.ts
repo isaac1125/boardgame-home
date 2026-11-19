@@ -1,8 +1,14 @@
+/** One token inside a comma-list `best_players` cell. */
+export type BestPlayersPart =
+  | { kind: 'single'; n: number }
+  | { kind: 'range'; min: number; max: number }
+
 /** Optional sheet `best_players` — soft-fallback null when blank/missing. */
 export type BestPlayers =
   | { mode: 'single'; n: number }
   | { mode: 'range'; min: number; max: number }
-  | { mode: 'list'; values: number[] }
+  /** `values` = expanded ints for overlap; `parts` = sheet tokens for display. */
+  | { mode: 'list'; values: number[]; parts: BestPlayersPart[] }
 
 export type Game = {
   name: string

@@ -1,4 +1,4 @@
-import type { BestPlayers, Game } from '../types'
+import type { BestPlayers, BestPlayersPart, Game } from '../types'
 
 export function formatPlayers(game: Game): string {
   if (game.playersMin === game.playersMax) return `${game.playersMax} 人`
@@ -60,37 +60,56 @@ function toAsciiDigits(raw: string): string {
 }
 
 /**
- * One comma-list token: a single int, or a short inclusive range (`16-18` → 16,17,18).
- * Huge spans are ignored so a typo cannot explode the list.
+ * Dashes Sheets / IME often insert: hyphen, en/em, minus, fullwidth hyphen-minus, tilde.
+ * Missing － / − previously dropped mid-list ranges like `16-18`.
  */
-function parseBestPlayersListToken(raw: string): number[] {
-  const normalized = toAsciiDigits(normalizeNumberToken(raw))
-  if (!normalized) return []
+const RANGE_DASH = String.raw`[-–—−－~～至到]`
 
-  const range = normalized.match(/^(\d+)\s*[-–—~～至到]\s*(\d+)$/u)
-  if (range) {
-    let min = Number(range[1])
-    let max = Number(range[2])
-    if (!Number.isFinite(min) || !Number.isFinite(max)) return []
-    if (min > max) [min, max] = [max, min]
-    if (min <= 0) return []
-    // Guard: BGG-style list ranges are tiny (e.g. 16-18); reject runaway spans
-    if (max - min > 20) return []
-    const out: number[] = []
-    for (let n = min; n <= max; n++) out.push(n)
-    return out
+function parseRangeBounds(normalized: string): { min: number; max: number } | null {
+  const range = normalized.match(new RegExp(`^(\\d+)\\s*${RANGE_DASH}\\s*(\\d+)\\s*[人位]?\\s*$`, 'u'))
+  if (!range) return null
+  let min = Number(range[1])
+  let max = Number(range[2])
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null
+  if (min > max) [min, max] = [max, min]
+  if (min <= 0) return null
+  return { min, max }
+}
+
+function expandRange(min: number, max: number): number[] {
+  // Guard: BGG-style list ranges are tiny (e.g. 16-18); reject runaway spans
+  if (max - min > 20) return []
+  const out: number[] = []
+  for (let n = min; n <= max; n++) out.push(n)
+  return out
+}
+
+/** One comma-list token → display part + expanded ints for overlap. */
+function parseBestPlayersListToken(raw: string): { part: BestPlayersPart; values: number[] } | null {
+  const normalized = toAsciiDigits(normalizeNumberToken(raw))
+  if (!normalized) return null
+
+  const bounds = parseRangeBounds(normalized)
+  if (bounds) {
+    if (bounds.min === bounds.max) {
+      return { part: { kind: 'single', n: bounds.min }, values: [bounds.min] }
+    }
+    const values = expandRange(bounds.min, bounds.max)
+    if (values.length === 0) return null
+    return { part: { kind: 'range', min: bounds.min, max: bounds.max }, values }
   }
 
   const n = parseOptionalInt(normalized)
-  return n != null && n > 0 ? [n] : []
+  if (n == null || n <= 0) return null
+  return { part: { kind: 'single', n }, values: [n] }
 }
 
 /**
  * Optional `best_players`:
  * - single `4` (also `４`, `4人`, `4.0`)
- * - range `3-5` / `3–5`
+ * - range `3-5` / `3–5` / fullwidth `３－５`
  * - list `6,8,10` (also ， 、)
- * - mixed list+range tokens `14,16-18,20,22` → expands to discrete list
+ * - mixed list+range `14,16-18,20,22` (keeps `16–18` on the card)
  * Soft-fallback: blank / unparseable → null.
  */
 export function parseBestPlayers(raw: string): BestPlayers | null {
@@ -98,24 +117,25 @@ export function parseBestPlayers(raw: string): BestPlayers | null {
   if (!t) return null
 
   if (/[,，、]/.test(t)) {
-    const values = [
-      ...new Set(t.split(/[,，、]/).flatMap((s) => parseBestPlayersListToken(s))),
-    ].sort((a, b) => a - b)
+    const tokens = t
+      .split(/[,，、]/)
+      .map((s) => parseBestPlayersListToken(s))
+      .filter((x): x is NonNullable<typeof x> => x != null)
+    if (tokens.length === 0) return null
+
+    const parts = tokens.map((x) => x.part)
+    const values = [...new Set(tokens.flatMap((x) => x.values))].sort((a, b) => a - b)
     if (values.length === 0) return null
     if (values.length === 1) return { mode: 'single', n: values[0] }
-    return { mode: 'list', values }
+    return { mode: 'list', values, parts }
   }
 
-  // Normalize fullwidth digits before range detect so `３–５` works
+  // Normalize fullwidth digits before range detect so `３－５` works
   const normalized = toAsciiDigits(t)
-  const range = normalized.match(/^(\d+)\s*[-–—~～至到]\s*(\d+)\s*[人位]?\s*$/u)
-  if (range) {
-    let min = Number(range[1])
-    let max = Number(range[2])
-    if (!Number.isFinite(min) || !Number.isFinite(max)) return null
-    if (min > max) [min, max] = [max, min]
-    if (min === max) return { mode: 'single', n: min }
-    return { mode: 'range', min, max }
+  const bounds = parseRangeBounds(normalized)
+  if (bounds) {
+    if (bounds.min === bounds.max) return { mode: 'single', n: bounds.min }
+    return { mode: 'range', min: bounds.min, max: bounds.max }
   }
 
   const n = parseOptionalInt(normalized)
@@ -136,6 +156,10 @@ export function bestPlayersOverlaps(
   }
   if (best.mode === 'range') return best.min <= sliderMax && best.max >= sliderMin
   return best.values.some((v) => v >= sliderMin && v <= sliderMax)
+}
+
+function formatPart(part: BestPlayersPart): string {
+  return part.kind === 'single' ? `${part.n}` : `${part.min}–${part.max}`
 }
 
 /**
@@ -161,12 +185,20 @@ function collapseBestPlayerSegments(values: number[]): string[] {
   return segments
 }
 
-/** Compact card / list value (no 人). Lists collapse runs: 14·16–18·20·22. */
+/** Prefer sheet tokens when a list embeds ranges; else collapse consecutive singles. */
+function formatListSegments(best: Extract<BestPlayers, { mode: 'list' }>): string[] {
+  if (best.parts.some((p) => p.kind === 'range')) {
+    return best.parts.map(formatPart)
+  }
+  return collapseBestPlayerSegments(best.values)
+}
+
+/** Compact card / list value (no 人). Lists keep mid-ranges: 14·16–18·20·22. */
 export function formatBestPlayers(best: BestPlayers | null): string | null {
   if (!best) return null
   if (best.mode === 'single') return `${best.n}`
   if (best.mode === 'range') return `${best.min}–${best.max}`
-  return collapseBestPlayerSegments(best.values).join('·')
+  return formatListSegments(best).join('·')
 }
 
 /** Detail-panel value with 人:「4 人」／「3–5 人」／「14、16–18、20、22 人」. */
@@ -174,5 +206,5 @@ export function formatBestPlayersDetail(best: BestPlayers | null): string | null
   if (!best) return null
   if (best.mode === 'single') return `${best.n} 人`
   if (best.mode === 'range') return `${best.min}–${best.max} 人`
-  return `${collapseBestPlayerSegments(best.values).join('、')} 人`
+  return `${formatListSegments(best).join('、')} 人`
 }
