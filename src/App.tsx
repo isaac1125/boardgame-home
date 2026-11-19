@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { CatalogData, Game } from './types'
+import { FireworksBurst } from './Fireworks'
 import {
   bestPlayersOverlaps,
   formatBestPlayers,
@@ -9,6 +10,16 @@ import {
   formatPlayers,
 } from './lib/format'
 import { loadCatalog, resolveAssetUrl } from './lib/loadCatalog'
+import {
+  displayWishlistNotes,
+  isWishlist,
+  isWishlistHash,
+  readWishlistUnlocked,
+  WISHLIST_HASH,
+  WISHLIST_TAP_TARGET,
+  WISHLIST_TAP_WINDOW_MS,
+  writeWishlistUnlocked,
+} from './lib/wishlist'
 import { youtubeEmbedUrl } from './lib/youtube'
 import './App.css'
 
@@ -842,12 +853,18 @@ function DetailPanel({
           ) : null}
         </div>
 
-        {game.notes ? (
-          <div className="notes-box">
-            <div className="label">備註</div>
-            <p>{game.notes}</p>
-          </div>
-        ) : null}
+        {(() => {
+          const notesText = isWishlist(game)
+            ? displayWishlistNotes(game.notes)
+            : game.notes
+          if (!notesText) return null
+          return (
+            <div className="notes-box">
+              <div className="label">備註</div>
+              <p>{notesText}</p>
+            </div>
+          )
+        })()}
 
         {embed ? (
           <div className="video-box">
@@ -919,6 +936,8 @@ function QuizPanel({
   )
 }
 
+type AppView = 'catalog' | 'wishlist'
+
 export default function App() {
   const [data, setData] = useState<CatalogData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -932,15 +951,24 @@ export default function App() {
   const [quizStep, setQuizStep] = useState(0)
   const [quizPatches, setQuizPatches] = useState<QuizPatch[]>([])
   const [quizToast, setQuizToast] = useState<string | null>(null)
+  const [view, setView] = useState<AppView>('catalog')
+  const [wishlistUnlocked, setWishlistUnlocked] = useState(false)
+  const [showFireworks, setShowFireworks] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLElement>(null)
+  const brandTapRef = useRef<{ count: number; timer: number | null }>({
+    count: 0,
+    timer: null,
+  })
 
   useEffect(() => {
     let cancelled = false
     loadCatalog()
       .then((catalog) => {
         if (cancelled) return
-        const b = catalogBoundsFromGames(catalog.games)
+        // Bounds / filters only from owned catalog — never wishlist rows
+        const owned = catalog.games.filter((g) => !isWishlist(g))
+        const b = catalogBoundsFromGames(owned)
         setBounds(b)
         setFilters(emptyFilters(b))
         setData(catalog)
@@ -952,6 +980,27 @@ export default function App() {
       cancelled = true
     }
   }, [])
+
+  // Restore unlock + #wishlist within the same session (easter egg, not security)
+  useEffect(() => {
+    const unlocked = readWishlistUnlocked()
+    setWishlistUnlocked(unlocked)
+    if (unlocked && isWishlistHash()) setView('wishlist')
+  }, [])
+
+  useEffect(() => {
+    function onHash() {
+      if (isWishlistHash() && readWishlistUnlocked()) {
+        setWishlistUnlocked(true)
+        setView('wishlist')
+      } else if (!isWishlistHash() && view === 'wishlist') {
+        setView('catalog')
+        setSelected(null)
+      }
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [view])
 
   useEffect(() => {
     if (!selected) return
@@ -974,10 +1023,20 @@ export default function App() {
     return () => window.clearTimeout(t)
   }, [quizToast])
 
-  const filtered = useMemo(() => {
+  /** Owned catalog only — wishlist rows never enter presets / slider / quiz. */
+  const catalogGames = useMemo(() => {
     if (!data) return []
-    return data.games.filter((g) => matchesFilters(g, filters, bounds))
-  }, [data, filters, bounds])
+    return data.games.filter((g) => !isWishlist(g))
+  }, [data])
+
+  const wishlistGames = useMemo(() => {
+    if (!data) return []
+    return data.games.filter((g) => isWishlist(g))
+  }, [data])
+
+  const filtered = useMemo(() => {
+    return catalogGames.filter((g) => matchesFilters(g, filters, bounds))
+  }, [catalogGames, filters, bounds])
 
   const sliderActive = playersRangeActive(filters, bounds)
 
@@ -1108,6 +1167,58 @@ export default function App() {
     }, 60)
   }
 
+  const openWishlist = useCallback((withFireworks: boolean) => {
+    writeWishlistUnlocked(true)
+    setWishlistUnlocked(true)
+    setView('wishlist')
+    setSelected(null)
+    setQuizOpen(false)
+    setSearchOpen(false)
+    if (withFireworks) setShowFireworks(true)
+    if (!isWishlistHash()) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${WISHLIST_HASH}`)
+    }
+  }, [])
+
+  function closeWishlist() {
+    setView('catalog')
+    setSelected(null)
+    setShowFireworks(false)
+    if (isWishlistHash()) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+    }
+  }
+
+  function onBrandTap() {
+    // Already on wishlist → replay entrance burst (handy for demo / reduced surprise)
+    if (view === 'wishlist') {
+      setShowFireworks(true)
+      return
+    }
+
+    // Already unlocked this session → reopen wishlist (no fireworks)
+    if (wishlistUnlocked || readWishlistUnlocked()) {
+      openWishlist(false)
+      return
+    }
+
+    const tap = brandTapRef.current
+    if (tap.timer != null) window.clearTimeout(tap.timer)
+    tap.count += 1
+    if (tap.count >= WISHLIST_TAP_TARGET) {
+      tap.count = 0
+      tap.timer = null
+      openWishlist(true)
+      return
+    }
+    tap.timer = window.setTimeout(() => {
+      tap.count = 0
+      tap.timer = null
+    }, WISHLIST_TAP_WINDOW_MS)
+  }
+
+  const onFireworksDone = useCallback(() => setShowFireworks(false), [])
+
   if (error) {
     return (
       <div className="page">
@@ -1137,11 +1248,71 @@ export default function App() {
     )
   }
 
+  if (view === 'wishlist') {
+    return (
+      <div className="page page--wishlist">
+        <header className="topbar">
+          <div className="topbar__row">
+            <button type="button" className="brand brand--tap" onClick={onBrandTap}>
+              桌遊抵家
+            </button>
+            <button type="button" className="wishlist-back" onClick={closeWishlist}>
+              返回清單
+            </button>
+          </div>
+        </header>
+
+        <section className="list-section wishlist-section" aria-label="願望清單">
+          <div className="list-header">
+            <h2>願望清單</h2>
+            <span>共 {wishlistGames.length} 款</span>
+          </div>
+
+          {wishlistGames.length === 0 ? (
+            <div className="panel empty">
+              還沒有願望。在試算表 <code>notes</code> 寫入「願望」就會出現在這裡。
+            </div>
+          ) : (
+            <div className="game-grid wishlist-grid">
+              {wishlistGames.map((game, i) => (
+                <GameCard
+                  key={`wish-${game.name}`}
+                  game={game}
+                  showLocation={data.settings.showLocation}
+                  showLentTo={data.settings.showLentTo}
+                  enterIndex={i}
+                  onOpen={() => setSelected(game)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {showFireworks ? <FireworksBurst onDone={onFireworksDone} /> : null}
+
+        {selected ? (
+          <DetailPanel
+            game={selected}
+            settings={data.settings}
+            onClose={() => setSelected(null)}
+          />
+        ) : null}
+      </div>
+    )
+  }
+
   return (
     <div className="page">
       <header className={`topbar ${searchOpen ? 'topbar--search-open' : ''}`}>
         <div className="topbar__row">
-          <div className="brand">桌遊抵家</div>
+          <button
+            type="button"
+            className="brand brand--tap"
+            onClick={onBrandTap}
+            aria-label="桌遊抵家"
+          >
+            桌遊抵家
+          </button>
           <div className="topbar-tools">
             <button
               type="button"
